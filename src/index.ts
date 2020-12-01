@@ -344,8 +344,13 @@ function tickGenerator(stage: Stage) {
   }
 }
 
+function clicked(stage: Stage) {
+  let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
+}
+
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
+  
   let canvas = <HTMLCanvasElement> document.getElementById('myCanvas'),
   ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
@@ -359,6 +364,9 @@ window.addEventListener("load", () => {
   //Create a stage by getting a reference to the canvas
   let stage = new Stage("myCanvas");
   stage.enableMouseOver(10);
+
+  let div = document.getElementById("hello");
+  div.addEventListener("click", () => {clicked(stage)});
 
   let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
 
