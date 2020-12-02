@@ -393,6 +393,27 @@ function pan(stage, screen, staticObjects) {
   })
 }
 
+function zoomButtons(stage, canvas, zoomIntensity) {
+  // zoom buttons (might be better to replace with html buttons)
+  let zoomIn = new Shape();
+  zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
+  staticObjects.push([zoomIn, 25, 25]);
+  stage.addChild(zoomIn);
+
+  zoomIn.addEventListener("click", (event) => {
+    scale(stage, zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
+  })
+
+  let zoomOut = new Shape();
+  zoomOut.graphics.beginFill("white").drawRect(25, 100, 50, 50);
+  staticObjects.push([zoomOut, 25, 100]);
+  stage.addChild(zoomOut);
+
+  zoomOut.addEventListener("click", (event) => {
+    scale(stage, 1/zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
+  })
+}
+
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
   let canvas = <HTMLCanvasElement> document.getElementById('myCanvas'),
@@ -418,25 +439,6 @@ window.addEventListener("load", () => {
   // change how much stage zooms each step
   let zoomIntensity = 1.2;
 
-  // zoom buttons (might be better to replace with html buttons)
-  let zoomIn = new Shape();
-  zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
-  staticObjects.push([zoomIn, 25, 25]);
-  stage.addChild(zoomIn);
-
-  zoomIn.addEventListener("click", (event) => {
-    scale(stage, zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
-  })
-
-  let zoomOut = new Shape();
-  zoomOut.graphics.beginFill("white").drawRect(25, 100, 50, 50);
-  staticObjects.push([zoomOut, 25, 100]);
-  stage.addChild(zoomOut);
-
-  zoomOut.addEventListener("click", (event) => {
-    scale(stage, 1/zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
-  })
-
   // mouse wheel zoom
   canvas.addEventListener("wheel", (event) => {
     let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
@@ -445,12 +447,14 @@ window.addEventListener("load", () => {
 
   // click and drag pan
   pan(stage, screen, staticObjects);
-  
 
   let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
 
   let block2: Block = new Block(stage, 100, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write");
-  //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
+  //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
+
+  // zoom buttons
+  zoomButtons(stage, canvas, zoomIntensity);
 
   Ticker.framerate = 60;
   Ticker.addEventListener('tick', tickGenerator(stage));  
