@@ -9,6 +9,7 @@ const IO_PADDING_UD = 20;
 const IO_TEXT_PADDING_LR = 15;
 const IO_TEXT_PADDING_UD = 10;
 
+var staticObjects = new Array();
 class Element {
   props: any;
 
@@ -298,13 +299,15 @@ class Block {
     this.blockBody.container.addEventListener('mousedown', (event) => {
       console.log(event);
       this.clickedOn = true;
-      this.clickOffset = [this.container.x - event.stageX,
-                                this.container.y - event.stageY];
+      let localpos = stage.globalToLocal(event.stageX, event.stageY);
+      this.clickOffset = [this.container.x - localpos.x,
+                                this.container.y - localpos.y];
     })
 
     this.blockBody.container.addEventListener('pressmove', (event) => {
-      this.container.x = event.stageX + this.clickOffset[0];
-      this.container.y = event.stageY + this.clickOffset[1];;
+      let localpos = stage.globalToLocal(event.stageX, event.stageY);
+      this.container.x = localpos.x + this.clickOffset[0];
+      this.container.y = localpos.y + this.clickOffset[1];;
     })
 
     this.update();
@@ -344,6 +347,46 @@ function tickGenerator(stage: Stage) {
   }
 }
 
+// scale function
+function scale(stage, zoom, staticObjects) {
+  let mpos = stage.globalToLocal(stage.mouseX, stage.mouseY);
+  stage.regX = mpos.x;
+  stage.regY = mpos.y;
+  stage.x = stage.mouseX;
+  stage.y = stage.mouseY;
+
+  stage.scale *= zoom;
+
+  staticObjects.forEach(object => {
+    object[0].graphics.command.w /= zoom;
+    object[0].graphics.command.h /= zoom;
+
+    let pos = stage.globalToLocal(object[1], object[2]);
+    object[0].graphics.command.x = pos.x;
+    object[0].graphics.command.y = pos.y;
+  })
+
+  stage.update();  
+}
+
+// pan function
+function pan(stage, screen, staticObjects) {
+  screen.addEventListener("mousedown", (event1) => {
+    let initPos = [stage.x, stage.y];
+
+    screen.addEventListener('pressmove', (event2) => {
+      stage.x = initPos[0] + event2.stageX - event1.stageX;
+      stage.y = initPos[1] + event2.stageY - event1.stageY;
+      
+      staticObjects.forEach(object => {
+        let pos = stage.globalToLocal(object[1], object[2]);
+        object[0].graphics.command.x = pos.x;
+        object[0].graphics.command.y = pos.y;
+      })      
+    })
+  })
+}
+
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
   let canvas = <HTMLCanvasElement> document.getElementById('myCanvas'),
@@ -359,6 +402,48 @@ window.addEventListener("load", () => {
   //Create a stage by getting a reference to the canvas
   let stage = new Stage("myCanvas");
   stage.enableMouseOver(10);
+
+  // set up a customizable background screen
+  let screen = new Shape();
+  screen.graphics.beginLinearGradientFill(["#D7C7FF" ,"#FFEB9D"], [0, 1], -4*canvas.width, -4*canvas.height, 4*canvas.width, 4*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
+  staticObjects.push([screen, 0, 0]);
+  stage.addChild(screen);
+
+  // zoom buttons (might be better to replace with html)
+  let zoomIn = new Shape();
+  zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
+  staticObjects.push([zoomIn, 25, 25]);
+  stage.addChild(zoomIn);
+
+  zoomIn.addEventListener("click", (event) => {
+    scale(stage, 1.2, staticObjects);
+  })
+
+  let zoomOut = new Shape();
+  zoomOut.graphics.beginFill("white").drawRect(25, 100, 50, 50);
+  staticObjects.push([zoomOut, 25, 100]);
+  stage.addChild(zoomOut);
+
+  zoomOut.addEventListener("click", (event) => {
+    scale(stage, 1/1.2, staticObjects);
+  })
+
+  // mouse wheel zoom
+  canvas.addEventListener("wheel", (event) => {
+    let delta = event.deltaY;
+    let zoom = 1;
+    let intensity = 1.2;
+    if (delta < 0) {
+      zoom = 1/intensity;
+    } else if (delta > 0) {
+      zoom = intensity;
+    }
+    scale(stage, zoom, staticObjects);
+  });
+
+  // click and drag pan
+  pan(stage, screen, staticObjects);
+  
 
   let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
 
