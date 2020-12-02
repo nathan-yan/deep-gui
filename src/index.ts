@@ -9,7 +9,9 @@ const IO_PADDING_UD = 20;
 const IO_TEXT_PADDING_LR = 15;
 const IO_TEXT_PADDING_UD = 10;
 
+// store all non-moving elements
 var staticObjects = new Array();
+
 class Element {
   props: any;
 
@@ -299,15 +301,15 @@ class Block {
     this.blockBody.container.addEventListener('mousedown', (event) => {
       console.log(event);
       this.clickedOn = true;
-      let localpos = stage.globalToLocal(event.stageX, event.stageY);
-      this.clickOffset = [this.container.x - localpos.x,
-                                this.container.y - localpos.y];
+      let localPos = stage.globalToLocal(event.stageX, event.stageY);
+      this.clickOffset = [this.container.x - localPos.x,
+                                this.container.y - localPos.y];
     })
 
     this.blockBody.container.addEventListener('pressmove', (event) => {
-      let localpos = stage.globalToLocal(event.stageX, event.stageY);
-      this.container.x = localpos.x + this.clickOffset[0];
-      this.container.y = localpos.y + this.clickOffset[1];;
+      let localPos = stage.globalToLocal(event.stageX, event.stageY);
+      this.container.x = localPos.x + this.clickOffset[0];
+      this.container.y = localPos.y + this.clickOffset[1];;
     })
 
     this.update();
@@ -348,25 +350,29 @@ function tickGenerator(stage: Stage) {
 }
 
 // scale function
-function scale(stage, zoom, staticObjects) {
-  let mpos = stage.globalToLocal(stage.mouseX, stage.mouseY);
-  stage.regX = mpos.x;
-  stage.regY = mpos.y;
-  stage.x = stage.mouseX;
-  stage.y = stage.mouseY;
+function scale(stage, zoom, zoomPt, staticObjects) {
+  // set zoom bounds
+  if (zoom > 1 && stage.scale < 5 || zoom < 1 && stage.scale > 0.2) {
+    let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
+    stage.regX = localPos.x;
+    stage.regY = localPos.y;
+    stage.x = zoomPt[0];
+    stage.y = zoomPt[1];
 
-  stage.scale *= zoom;
+    stage.scale *= zoom;
 
-  staticObjects.forEach(object => {
-    object[0].graphics.command.w /= zoom;
-    object[0].graphics.command.h /= zoom;
+    staticObjects.forEach(object => {
+      object[0].graphics.command.w /= zoom;
+      object[0].graphics.command.h /= zoom;
 
-    let pos = stage.globalToLocal(object[1], object[2]);
-    object[0].graphics.command.x = pos.x;
-    object[0].graphics.command.y = pos.y;
-  })
+      let objPos = stage.globalToLocal(object[1], object[2]);
+      object[0].graphics.command.x = objPos.x;
+      object[0].graphics.command.y = objPos.y;
+      console.log(stage.scale);
+    })
 
-  stage.update();  
+    stage.update();
+  }
 }
 
 // pan function
@@ -405,18 +411,21 @@ window.addEventListener("load", () => {
 
   // set up a customizable background screen
   let screen = new Shape();
-  screen.graphics.beginLinearGradientFill(["#D7C7FF" ,"#FFEB9D"], [0, 1], -4*canvas.width, -4*canvas.height, 4*canvas.width, 4*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
+  screen.graphics.beginLinearGradientFill(["#CC91FF" ,"#91A9FF"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
+  
+  // change how much stage zooms each step
+  let zoomIntensity = 1.2;
 
-  // zoom buttons (might be better to replace with html)
+  // zoom buttons (might be better to replace with html buttons)
   let zoomIn = new Shape();
   zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
   staticObjects.push([zoomIn, 25, 25]);
   stage.addChild(zoomIn);
 
   zoomIn.addEventListener("click", (event) => {
-    scale(stage, 1.2, staticObjects);
+    scale(stage, zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
   })
 
   let zoomOut = new Shape();
@@ -425,20 +434,13 @@ window.addEventListener("load", () => {
   stage.addChild(zoomOut);
 
   zoomOut.addEventListener("click", (event) => {
-    scale(stage, 1/1.2, staticObjects);
+    scale(stage, 1/zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
   })
 
   // mouse wheel zoom
   canvas.addEventListener("wheel", (event) => {
-    let delta = event.deltaY;
-    let zoom = 1;
-    let intensity = 1.2;
-    if (delta < 0) {
-      zoom = 1/intensity;
-    } else if (delta > 0) {
-      zoom = intensity;
-    }
-    scale(stage, zoom, staticObjects);
+    let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
+    scale(stage, zoom, [stage.mouseX, stage.mouseY], staticObjects);
   });
 
   // click and drag pan
