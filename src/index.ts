@@ -266,12 +266,14 @@ class Block {
   blockBody: BlockBody;
   inputs: Inputs;
   outputs: Outputs;
+  sidebar: Sidebar;  // the sidebar, if any, that this block belongs to. display the compact sidebar version of this block
 
-  clickedOn: boolean = true;
   clickOffset: [number, number];
   //outputs: Output;
 
-  constructor(stage: Stage, x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String) {
+  constructor(stage: Stage, x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String, sidebar: Sidebar) {
+    this.sidebar = sidebar;
+
     this.container = new Container();
     this.container.x = x;
     this.container.y = y;
@@ -290,14 +292,26 @@ class Block {
     });
 
     this.container.addChild(this.blockBody.container);
-    this.container.addChild(this.inputs.container);
-    this.container.addChild(this.outputs.container);
+    if (this.sidebar == null) {
+      this.container.addChild(this.inputs.container);
+      this.container.addChild(this.outputs.container);
+    }
     stage.addChild(this.container);
+
 
     // attach listeners
     this.blockBody.container.addEventListener('mousedown', (event) => {
       console.log(event);
-      this.clickedOn = true;
+      if (this.sidebar != null) {
+        if (this == this.sidebar.newAttentive) {
+          this.sidebar.newAttentive = new Block(stage, this.container.x + 10, this.container.y + 110, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this.sidebar);
+        } else if (this == this.sidebar.newConv) {
+          this.sidebar.newConv = new Block(stage, this.container.x + 10, this.container.y + 10, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this.sidebar);
+        }
+        this.sidebar = null
+        this.container.addChild(this.inputs.container);
+        this.container.addChild(this.outputs.container);
+      }
       this.clickOffset = [this.container.x - event.stageX,
                                 this.container.y - event.stageY];
     })
@@ -344,9 +358,26 @@ function tickGenerator(stage: Stage) {
   }
 }
 
-function clicked(stage: Stage) {
-  let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
+
+class Sidebar {
+  container: Container;
+  newConv: Block;
+  newAttentive: Block;
+
+  // have buttons be Blocks so that pressmove can work. on mousbuttondown add a new block to the sidebar.
+  // blocks should have a sidebar state where they look different.
+  constructor(stage: Stage) {
+    this.container = new Container;
+    this.container.x = 20;
+    this.container.y = 100;
+
+    this.newConv = new Block(stage, this.container.x + 10, this.container.y + 10, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this);
+    this.newAttentive = new Block(stage, this.container.x + 10, this.container.y + 110, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this);
+
+    stage.addChild(this.container);
+  }
 }
+
 
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
@@ -364,13 +395,11 @@ window.addEventListener("load", () => {
   //Create a stage by getting a reference to the canvas
   let stage = new Stage("myCanvas");
   stage.enableMouseOver(10);
+  
+  let sidebar = new Sidebar(stage)
 
-  let div = document.getElementById("hello");
-  div.addEventListener("click", () => {clicked(stage)});
-
-  let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution");
-
-  let block2: Block = new Block(stage, 100, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write");
+  let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
+  let block2: Block = new Block(stage, 100, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
 
   Ticker.framerate = 60;
