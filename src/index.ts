@@ -324,7 +324,6 @@ class Block {
     }
     stage.addChild(this.container);
 
-
     // attach listeners
     this.blockBody.container.addEventListener('mousedown', (event) => {
       console.log(event);
@@ -347,9 +346,9 @@ class Block {
         this.update();
       }
       
-      let localPos = stage.globalToLocal(event.stageX, event.stageY);
-      this.clickOffset = [this.container.x - localPos.x,
-                                this.container.y - localPos.y];
+      //let localPos = stage.globalToLocal(event.stageX, event.stageY);
+      this.clickOffset = [this.container.x - event.stageX,
+                                this.container.y - event.stageY];
       
     })
 
@@ -477,8 +476,8 @@ class Sidebar {
   // blocks should have a sidebar state where they look different.
   constructor(stage: Stage) {
     this.container = new Container();
-    this.container.x = 40;
-    this.container.y = 40;
+    this.container.x = 100;
+    this.container.y = 100;
 
     this.shape = new Shape();
     this.shape.graphics.beginStroke("#ddd");
@@ -493,7 +492,6 @@ class Sidebar {
         "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this);
     this.newAttentive = new Block(stage, this.container.x + this.newAttentiveXOffset, this.container.y + this.newAttentiveYOffset, 
         "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this);
-
   }
 }
 
@@ -515,14 +513,14 @@ window.addEventListener("load", () => {
   let stage = new Stage("myCanvas");
   stage.enableMouseOver(10);
   
-  let sidebar = new Sidebar(stage)
-
   // set up a customizable background screen
   let screen = new Shape();
   screen.graphics.beginLinearGradientFill(["#CC91FF" ,"#91A9FF"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
-  
+
+  let sidebar = new Sidebar(stage)
+
   // change how much stage zooms each step
   let zoomIntensity = 1.2;
 
@@ -535,8 +533,8 @@ window.addEventListener("load", () => {
   // click and drag pan
   pan(stage, screen, staticObjects);
 
-  let block: Block = new Block(stage, 800, 400, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
-  let block2: Block = new Block(stage, 800, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
+  let block: Block = new Block(stage, 200, 200, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
+  let block2: Block = new Block(stage, 200, 500, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 
   // zoom buttons
