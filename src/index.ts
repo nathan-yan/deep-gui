@@ -21,11 +21,14 @@ class BlockBody extends Element{
   shape: Shape;
   rect: Graphics.RoundRect;
   container: Container;
+  isSidebar: Boolean;
 
   blockType: Text;
   blockName: Text; 
   constructor(props) {
     super(props);
+
+    this.isSidebar = props.isSidebar;
 
     this.container = new Container();
     this.shape = new Shape();
@@ -36,20 +39,39 @@ class BlockBody extends Element{
 
     this.container.addChild(this.shape);
 
+    // x, y, w, h, corners x 4
+    // default values here are for sidebar display
+    this.rect = new Graphics.RoundRect(-TEXT_PADDING_LR, -10,
+      180, 60,
+      30, 30, 30, 30)
+      
     // create text
-    this.blockType = new Text(props.type + " :: ", "40px Inter", "#000");
-    this.blockName = new Text(props.name, "40px Inter", props.color);
-    this.blockName.x = this.blockType.getBounds().width;
+    if (props.isSidebar) {
+      this.blockName = new Text("new", "40px Inter", props.color);
+    } else {
+      this.completeText();
+    }
 
-
-    this.container.addChild(this.blockType);
     this.container.addChild(this.blockName);
 
-    // x, y, w, h, corners x 4
-    this.rect = new Graphics.RoundRect(-TEXT_PADDING_LR, -TEXT_PADDING_UD - 3,
-                                       0, 0,
-                                       100, 100, 100, 100)
+    
+
     this.shape.graphics.append(this.rect);
+  }
+
+  completeText = () => {
+    console.log("COMPLETE TEXT:" + this.props.name + this.props.color)
+    this.container.removeChild(this.blockName)
+    this.blockName = new Text(this.props.name, "40px Inter", this.props.color);
+    this.blockType = new Text(this.props.type + " :: ", "40px Inter", "#000");
+    this.blockName.x = this.blockType.getBounds().width;
+    this.container.addChild(this.blockType);
+    this.container.addChild(this.blockName);
+    this.rect.radiusTL = 100;
+    this.rect.radiusTR = 100;
+    this.rect.radiusBR = 100;
+    this.rect.radiusBL = 100;
+    this.rect.y = -TEXT_PADDING_UD - 3;
   }
 
   update = (width: number) => {
@@ -279,10 +301,11 @@ class Block {
     this.container.y = y;
     
     this.blockBody = new BlockBody({
-      color: color,
-      type: type,
-      name: name
-    });
+        color: color,
+        type: type,
+        name: name,
+        isSidebar: sidebar != null
+     });
     this.inputs = new Inputs({
       inputs: inputs
     });
@@ -303,14 +326,22 @@ class Block {
     this.blockBody.container.addEventListener('mousedown', (event) => {
       console.log(event);
       if (this.sidebar != null) {
-        if (this == this.sidebar.newAttentive) {
-          this.sidebar.newAttentive = new Block(stage, this.container.x + 10, this.container.y + 110, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this.sidebar);
-        } else if (this == this.sidebar.newConv) {
-          this.sidebar.newConv = new Block(stage, this.container.x + 10, this.container.y + 10, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this.sidebar);
+        if (this == this.sidebar.newConv) {
+          this.sidebar.newConv = new Block(stage,
+               this.sidebar.container.x + this.sidebar.newConvXOffset, this.sidebar.container.y + this.sidebar.newConvYOffset,
+              "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this.sidebar);
         }
+        else if (this == this.sidebar.newAttentive) {
+          this.sidebar.newAttentive = new Block(stage,
+              this.sidebar.container.x + this.sidebar.newAttentiveXOffset, this.sidebar.container.y + this.sidebar.newAttentiveYOffset,
+              "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this.sidebar);
+        } 
         this.sidebar = null
         this.container.addChild(this.inputs.container);
         this.container.addChild(this.outputs.container);
+        this.blockBody.isSidebar = false;
+        this.blockBody.completeText();
+        this.update();
       }
       this.clickOffset = [this.container.x - event.stageX,
                                 this.container.y - event.stageY];
@@ -333,11 +364,12 @@ class Block {
     // find the bounds of BlockBody
     let maxWidth: number = 0;
 
-    maxWidth = util.updateMax(maxWidth, this.inputs.update());
-    maxWidth = util.updateMax(maxWidth, this.outputs.update());
-    maxWidth = util.updateMax(maxWidth, this.blockBody.container.getBounds().width);
-    this.blockBody.update(maxWidth + 2 * TEXT_PADDING_LR);
-
+    if (!this.blockBody.isSidebar) {
+      maxWidth = util.updateMax(maxWidth, this.inputs.update());
+      maxWidth = util.updateMax(maxWidth, this.outputs.update());
+      maxWidth = util.updateMax(maxWidth, this.blockBody.container.getBounds().width);
+      this.blockBody.update(maxWidth + 2 * TEXT_PADDING_LR);
+    }
     // after the maxWidth has been computed, position everything
     
     // position inputs
@@ -363,18 +395,34 @@ class Sidebar {
   container: Container;
   newConv: Block;
   newAttentive: Block;
+  shape: Shape;
+  rect: Graphics.RoundRect;
+  newConvXOffset: number = 20 + TEXT_PADDING_LR;
+  newConvYOffset: number = 100;
+  newAttentiveXOffset: number = 20 + TEXT_PADDING_LR;
+  newAttentiveYOffset: number = 180;
 
   // have buttons be Blocks so that pressmove can work. on mousbuttondown add a new block to the sidebar.
   // blocks should have a sidebar state where they look different.
   constructor(stage: Stage) {
-    this.container = new Container;
-    this.container.x = 20;
-    this.container.y = 100;
+    this.container = new Container();
+    this.container.x = 40;
+    this.container.y = 40;
 
-    this.newConv = new Block(stage, this.container.x + 10, this.container.y + 10, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this);
-    this.newAttentive = new Block(stage, this.container.x + 10, this.container.y + 110, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this);
-
+    this.shape = new Shape();
+    this.shape.graphics.beginStroke("#ddd");
+    this.shape.graphics.setStrokeStyle(5);
+    this.shape.graphics.beginFill("#efefef");
+    this.rect = new Graphics.RoundRect(0, 0, 220, 600, 50, 50, 50, 50);
+    this.shape.graphics.append(this.rect);
+    this.container.addChild(this.shape);
     stage.addChild(this.container);
+
+    this.newConv = new Block(stage, this.container.x + this.newConvXOffset, this.container.y + this.newConvYOffset, 
+        "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this);
+    this.newAttentive = new Block(stage, this.container.x + this.newAttentiveXOffset, this.container.y + this.newAttentiveYOffset, 
+        "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this);
+
   }
 }
 
@@ -398,8 +446,8 @@ window.addEventListener("load", () => {
   
   let sidebar = new Sidebar(stage)
 
-  let block: Block = new Block(stage, 100, 100, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
-  let block2: Block = new Block(stage, 100, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
+  let block: Block = new Block(stage, 800, 400, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
+  let block2: Block = new Block(stage, 800, 100, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
 
   Ticker.framerate = 60;
