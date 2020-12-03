@@ -68,9 +68,9 @@ export class Block {
           this.update();
         }
         
-        //let localPos = stage.globalToLocal(event.stageX, event.stageY);
-        this.clickOffset = [this.container.x - event.stageX,
-                                  this.container.y - event.stageY];
+        let localPos = stage.globalToLocal(event.stageX, event.stageY);
+        this.clickOffset = [this.container.x - localPos.x,
+                                  this.container.y - localPos.y];
         
       })
   
