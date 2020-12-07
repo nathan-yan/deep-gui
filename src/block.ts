@@ -4,7 +4,7 @@ import * as constants from "./constants";
 import * as util from './util';
 
 import {EditorElement} from './editorElement';
-import {Inputs} from './inputs';
+import {Inputs, Input} from './inputs';
 import {Output, Outputs} from './outputs';
 import {Sidebar} from './sidebar'
 
@@ -15,15 +15,25 @@ export class Block {
     outputs: Outputs;
     sidebar: Sidebar;  // the sidebar, if any, that this block belongs to. display the compact sidebar version of this block
   
+    blocks: Block[] = [];   // the list of all other blocks, since this is pass by reference we chillin on the memory usage B)
+
     clickOffset: [number, number];
     //outputs: Output;
+
+    children: [Input, Output][];
   
-    constructor(stage: Stage, x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String, sidebar: Sidebar) {
+    constructor(stage: Stage, blocks: Block[], x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String, sidebar: Sidebar) {
+      console.log(blocks);
       this.sidebar = sidebar;
   
       this.container = new Container();
       this.container.x = x;
       this.container.y = y;
+     
+      this.blocks = blocks;
+      
+      
+      this.children = [];
       
       this.blockBody = new BlockBody({
           color: color,
@@ -32,18 +42,22 @@ export class Block {
           isSidebar: sidebar != null
        });
       this.inputs = new Inputs({
-        inputs: inputs
+        inputs: inputs,
+        //blocks: this.blocks
       });
       this.outputs = new Outputs({
         inputs: outputs,
+        block: this,
         checkConnection: this.checkConnection
       });
   
       this.container.addChild(this.blockBody.container);
+
       if (this.sidebar == null) {
         this.container.addChild(this.inputs.container);
         this.container.addChild(this.outputs.container);
       }
+      
       stage.addChild(this.container);
   
       // attach listeners
@@ -51,14 +65,20 @@ export class Block {
         console.log(event);
         if (this.sidebar != null) {
           if (this == this.sidebar.newConv) {
-            this.sidebar.newConv = new Block(stage,
-                 this.sidebar.container.x + this.sidebar.newConvXOffset, this.sidebar.container.y + this.sidebar.newConvYOffset,
-                "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", this.sidebar);
+            let newBlock: Block = new Block(stage, this.blocks,
+              this.sidebar.container.x + this.sidebar.newConvXOffset, this.sidebar.container.y + this.sidebar.newConvYOffset,
+             "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution-", this.sidebar);
+            
+            this.blocks.push(newBlock)
+            this.sidebar.newConv = newBlock;
           }
           else if (this == this.sidebar.newAttentive) {
-            this.sidebar.newAttentive = new Block(stage,
+            let newBlock: Block = new Block(stage, this.blocks,
                 this.sidebar.container.x + this.sidebar.newAttentiveXOffset, this.sidebar.container.y + this.sidebar.newAttentiveYOffset,
-                "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", this.sidebar);
+                "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write-", this.sidebar);
+            
+            this.blocks.push(newBlock);
+            this.sidebar.newAttentive = newBlock;
           } 
           this.sidebar = null
           this.container.addChild(this.inputs.container);
@@ -68,23 +88,43 @@ export class Block {
           this.update();
         }
         
-        //let localPos = stage.globalToLocal(event.stageX, event.stageY);
-        this.clickOffset = [this.container.x - event.stageX,
-                                  this.container.y - event.stageY];
+        let localPos = stage.globalToLocal(event.stageX, event.stageY);
+        this.clickOffset = [this.container.x - localPos.x,
+                                  this.container.y - localPos.y];
         
       })
   
       this.blockBody.container.addEventListener('pressmove', (event) => {
         let localPos = stage.globalToLocal(event.stageX, event.stageY);
         this.container.x = localPos.x + this.clickOffset[0];
-        this.container.y = localPos.y + this.clickOffset[1];;
+        this.container.y = localPos.y + this.clickOffset[1];
+
+        this.outputs.updateConnections();
+        this.inputs.updateConnections();
       })
   
       this.update();
     }
   
-    checkConnection(event: MouseEvent, output: Output) {
-      console.log("i am checking");
+    checkConnection = (event: any, output: Output) => {
+      let x: number = event.stageX;
+      let y: number = event.stageY; 
+      //console.log(this.blocks);
+      this.blocks.forEach((block: Block, index: number) => {
+        if (block != this) {
+          block.inputs.inputs.forEach((inp: Input, index: number) => {
+            let local: Point = inp.container.globalToLocal(x, y);
+            //console.log(local + " " + inp.props.name);
+            if (inp.container.hitTest(local.x, local.y)){
+              console.log(inp.props.name);
+              // make the connection
+              //output.addConnection(inp);
+              this.outputs.addParent([output, inp]);
+              block.inputs.addChild([output, inp]);
+            }
+          })
+        }
+      });
   
     }
   
@@ -107,6 +147,12 @@ export class Block {
       // position outputs
       this.outputs.container.x = (maxWidth - this.outputs.container.getBounds().width) / 2;
       this.outputs.container.y = -constants.TEXT_PADDING_UD - constants.IO_PADDING_UD - constants.IO_TEXT_PADDING_UD * 3;
+
+     
+    }
+
+    createConnections = () => {
+
     }
   }
 

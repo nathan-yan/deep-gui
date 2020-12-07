@@ -11,13 +11,6 @@ import {Sidebar} from './sidebar';
 // store all non-moving elements
 let staticObjects: any[] = new Array();
 
-function tickGenerator(stage: Stage) {
-  return function tick(event: Event) {
-    stage.update();
-    
-  }
-}
-
 // scale function
 function scale(stage, zoom, zoomPt, staticObjects) {
   // set zoom bounds
@@ -83,11 +76,32 @@ function zoomButtons(stage, canvas, zoomIntensity) {
   })
 }
 
+class Editor extends Stage {
+  constructor(id) {
+    super(id);
+    console.log("this is the editor!");
+
+    super.addEventListener("mousedown", (event) => {
+      console.log("editor");
+      console.log(event)
+    });
+  }
+}
+
+function tickGenerator(stage: Stage) {
+  return function tick(event: Event) {
+    stage.update();
+    
+  }
+}
+
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
   
-  let canvas = <HTMLCanvasElement> document.getElementById('myCanvas'),
-  ctx = canvas.getContext('2d'),
+  let canvas = <HTMLCanvasElement> document.getElementById('myCanvas');
+  let blocks: Block[] = [];
+
+  let ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
 
   canvas.width = 2000;
@@ -97,16 +111,16 @@ window.addEventListener("load", () => {
   ctx.scale(2, 2);
 
   //Create a stage by getting a reference to the canvas
-  let stage = new Stage("myCanvas");
+  let stage = <Stage> new Editor("myCanvas");
   stage.enableMouseOver(10);
   
   // set up a customizable background screen
   let screen = new Shape();
-  screen.graphics.beginLinearGradientFill(["#CC91FF" ,"#91A9FF"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
+  screen.graphics.beginLinearGradientFill(["#fafafa" ,"#fafafa"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
 
-  let sidebar = new Sidebar(stage)
+  let sidebar = new Sidebar(stage);
 
   // change how much stage zooms each step
   let zoomIntensity = 1.2;
@@ -120,8 +134,10 @@ window.addEventListener("load", () => {
   // click and drag pan
   pan(stage, screen, staticObjects);
 
-  let block: Block = new Block(stage, 200, 200, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
-  let block2: Block = new Block(stage, 200, 500, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
+  let block: Block = new Block(stage, blocks, 500, 200, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution_", null);
+  let block2: Block = new Block(stage, blocks, 200, 500, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write_", null);
+  blocks.push(block);
+  blocks.push(block2);
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 
   // zoom buttons

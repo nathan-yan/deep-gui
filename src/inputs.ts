@@ -2,12 +2,16 @@ import { Stage, Point, Rectangle, Ticker, Graphics, Container, Shape, Text } fro
 
 import * as constants from "./constants";
 import {EditorElement} from './editorElement';
+import { Output } from "./outputs";
+import { Block } from "./block";
 
 export class Input extends EditorElement{
     container: Container;
     inputName: Text;
     shape: Shape; 
     rect: Graphics.RoundRect;
+
+    connection: Output;
   
     constructor(props) {
       super(props);
@@ -53,13 +57,18 @@ export class Input extends EditorElement{
 export class Inputs extends EditorElement{
     container: Container;
     inputs: Input[] = [];
+
+    children: [Output, Input][];    // these are the outputs that connect to a certain input. in other words, 
+                                    // this Input depends on the following outputs
+                                    // each input should only have one corresponding output
   
     constructor(props) {
       super(props);
       this.container = new Container();
+      this.children = [];
   
       props.inputs.forEach((value: String, idx: number) => {
-        let inp: Input = new Input({name: value});
+        let inp: Input = new Input({name: value, blocks: props.blocks});
         this.inputs.push(inp);
         this.container.addChild(inp.container);
       });
@@ -67,6 +76,20 @@ export class Inputs extends EditorElement{
       this.update();
     }
   //burver.
+    addChild(pair: [Output, Input]) {
+      this.children.push(pair);
+    }
+
+    updateConnections() {
+      let seen: Set<Block> = new Set();
+      this.children.forEach((pair: [Output, Input], idx: number) => {
+        if (!seen.has(pair[0].props.block)){
+          pair[0].props.block.outputs.updateConnections();
+          seen.add(pair[0].props.block);
+        }
+      });
+    }
+
     update(): number {
       let accWidth = 0;
       this.inputs.forEach((inp: Input, idx: number) => {
