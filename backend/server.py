@@ -8,7 +8,7 @@ app = Flask(__name__)
 def test():
     if request.method == "POST":
         networkJson = request.json
-        compiledNetwork = compiler.write(compiler.compile(networkJson)).replace('\n', '<br>').replace(' ', '&nbsp')
+        compiledNetwork = compiler.write(networkJson, compiler.compile(networkJson)).replace('\n', '<br>').replace(' ', '&nbsp')
         return compiledNetwork
 
 if __name__ == "__main__":

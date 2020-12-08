@@ -1,114 +1,80 @@
-# get pytorch code for fully connected layers
-def getFcl(name):
-    return 'self.' + name + ' = ' + 'nn.' + name.split('_')[0], 'x = self.' + name + '(x)'
-
-# get pytorch code for functions
-def getFunction(name, kind):
-    return 'x = ' + kind + '.' + name.split('_')[0] + '(x'
-
-# write the code
-def write(orderedNetwork):
-    # set up imports
-    imports = "\
-import torch\n\
-import torch.nn as nn\n\
-import torch.nn.functional as F\n\
-"
-
-    # set up class and constructor
-    fcl = "\
-\n\
-class Net(nn.Module):\n\
-    def __init__(self):\n\
-        super(Net, self).__init__()\n"
-    
-    # set up forward function
-    forward = "\
-    def forward(self, x):\n"
-    
-    # add pytorch code to the class strings
-    while orderedNetwork:
-        layer = orderedNetwork.pop(0)
-        if layer[2] == 'fcl':
-            currentFcl = getFcl(layer[0])
-            fcl += "        " + currentFcl[0] + '('
-            for parameter in layer[1]:
-                fcl += str(parameter) + ','
-            fcl = fcl[:-1]
-            fcl += ')\n'
-            forward += "        " + currentFcl[1] + '\n'
-        else:
-            forward += "        " + getFunction(layer[0], layer[2])
-            for parameter in layer[1]:
-                forward += ',' + str(parameter)
-            forward += ')\n'
-    
-    forward += "        return x"
-
-    return imports + fcl + forward
-
-# test input
-# 'name': {
-    #     'input': '',
-    #     'parameters': [],
-    #     'kind': '',
-    # }
+# test json
 test = {
-   "input":{
-      "input":"None",
-      "parameters":"None",
-      "kind":"None"
-   },
-   "output":{
-      "input":"Linear_1",
-      "parameters":"None",
-      "kind":"None"
-   },
-   "Linear_1":{
-      "input":"relu_1",
-      "parameters":[
-         100,
-         10
+   "Conv2d_1":{
+      "outputs":[
+         "ReLU_1"
       ],
-      "kind":"fcl"
+      "parameters":[
+         1,
+         20,
+         5
+      ],
+      "function":"Conv2d"
    },
-   "relu_1":{
-      "input":"flatten_1",
+   "ReLU_1":{
+      "outputs":[
+         "Conv2d_2"
+      ],
       "parameters":[
          
       ],
-      "kind":"F"
+      "function":"ReLU"
    },
-   "Conv2d_1":{
-      "input":"input",
-      "parameters":[
-         1,
-         6,
-         3
+   "Conv2d_2":{
+      "outputs":[
+         "ReLU_2"
       ],
-      "kind":"fcl"
+      "parameters":[
+         20,
+         64,
+         5
+      ],
+      "function":"Conv2d"
    },
-   "flatten_1":{
-      "input":"Conv2d_1",
-      "parameters":[
-         1
+   "ReLU_2":{
+      "outputs":[
+         
       ],
-      "kind":"torch"
+      "parameters":[
+         
+      ],
+      "function":"ReLU"
    }
 }
 
-# build ordered network
-def compile(network):
-    order = []
-    if 'input' in network and 'output' in network:
-        layer = network['output']['input']
-        while layer != 'input':
-            order.append([layer, network[layer]['parameters'], network[layer]['kind']])
-            layer = network[layer]['input']
-        return order
-    else:
-        return 'missing input/output'
+# order blocks
+def compile(graph):
+    orderedBlocks = []
+    compiledBlocks = {}
+    for block in graph:
+        compiledBlocks[block] = False
+    for block in graph:
+        if not compiledBlocks[block]:
+            topologicalSort(graph, block, orderedBlocks, compiledBlocks)
+    return orderedBlocks
 
-# check output
-print(write(compile(test)))
-print(compile(test))
+# recursively stack blocks in order
+def topologicalSort(graph, key, stack, visited):
+    visited[key] = True
+    for value in graph[key]['outputs']:
+        if not visited[value]:
+            topologicalSort(graph, value, stack, visited)
+    stack.append(key)
+
+# write 
+def write(graph, order):
+    code = "import torch\nimport torch.nn as nn\n\nmodel = nn.Sequential(\n"
+
+    while order:
+        block = order.pop()
+        code += getLayer(graph, block)
+    
+    return code + ")"
+
+# get layer code
+def getLayer(graph, block):
+    layer = 'nn.' + graph[block]['function'] + '(' + str(graph[block]['parameters'])[1:-1] + '),\n'
+    return layer
+
+# view generated code
+print(write(test, compile(test)))
