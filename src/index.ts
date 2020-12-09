@@ -67,19 +67,19 @@ function resetSidebarPos(stage, sidebar, zoom=1){
   sidebar.shape.graphics.command.y = sidebarPos.y;
 
   sidebar.sidebarBlocks.forEach(sidebarBlock => {
-    sidebarBlock.blockBody.container.scale /= zoom;
+    sidebarBlock[0].blockBody.container.scale /= zoom;
     
-    let blockPos = stage.globalToLocal(20, sidebarBlock.container.initialY);
-    sidebarBlock.container.x = blockPos.x;
-    sidebarBlock.container.y = blockPos.y;
+    let blockPos = stage.globalToLocal(20, sidebarBlock[1]);
+    sidebarBlock[0].container.x = blockPos.x;
+    sidebarBlock[0].container.y = blockPos.y;
   })
 
   sidebar.sidebarTexts.forEach(sidebarText => {
     sidebarText[0].scale /= zoom;
     
-    let blockPos = stage.globalToLocal(20, sidebarText[1]);
-    sidebarText[0].x = blockPos.x;
-    sidebarText[0].y = blockPos.y;
+    let textPos = stage.globalToLocal(20, sidebarText[1]);
+    sidebarText[0].x = textPos.x;
+    sidebarText[0].y = textPos.y;
   })
 }
 

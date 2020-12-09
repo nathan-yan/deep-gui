@@ -31,10 +31,6 @@ export class Block {
       this.container = new Container();
       this.container.x = x;
       this.container.y = y;
-      
-      if (sidebar) {
-        this.container.initialY;
-      }
      
       this.blocks = blocks;
       
