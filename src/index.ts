@@ -12,7 +12,7 @@ import {Sidebar} from './sidebar';
 let staticObjects: any[] = new Array();
 
 // scale function
-function scale(stage, zoom, zoomPt, staticObjects) {
+function scale(stage, zoom, zoomPt, staticObjects, sidebar) {
   // set zoom bounds
   if (zoom > 1 && stage.scale < 5 || zoom < 1 && stage.scale > 0.2) {
     let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
@@ -23,6 +23,7 @@ function scale(stage, zoom, zoomPt, staticObjects) {
 
     stage.scale *= zoom;
 
+    // reset rects
     staticObjects.forEach(object => {
       object[0].graphics.command.w /= zoom;
       object[0].graphics.command.h /= zoom;
@@ -30,15 +31,19 @@ function scale(stage, zoom, zoomPt, staticObjects) {
       let objPos = stage.globalToLocal(object[1], object[2]);
       object[0].graphics.command.x = objPos.x;
       object[0].graphics.command.y = objPos.y;
-      console.log(stage.scale);
     })
+
+    // reset sidebar
+    sidebar.shape.graphics.command.w /= zoom;
+    sidebar.shape.graphics.command.h /= zoom;
+    resetSidebarPos(stage, sidebar, zoom);    
 
     stage.update();
   }
 }
 
 // pan function
-function pan(stage, screen, staticObjects) {
+function pan(stage, screen, staticObjects, sidebar) {
   screen.addEventListener("mousedown", (event1) => {
     let initPos = [stage.x, stage.y];
 
@@ -50,12 +55,35 @@ function pan(stage, screen, staticObjects) {
         let pos = stage.globalToLocal(object[1], object[2]);
         object[0].graphics.command.x = pos.x;
         object[0].graphics.command.y = pos.y;
-      })      
+      })
+      resetSidebarPos(stage, sidebar);
     })
   })
 }
 
-function zoomButtons(stage, canvas, zoomIntensity) {
+function resetSidebarPos(stage, sidebar, zoom=1){
+  let sidebarPos = stage.globalToLocal(0, 0);
+  sidebar.shape.graphics.command.x = sidebarPos.x;
+  sidebar.shape.graphics.command.y = sidebarPos.y;
+
+  sidebar.sidebarBlocks.forEach(sidebarBlock => {
+    sidebarBlock.blockBody.container.scale /= zoom;
+    
+    let blockPos = stage.globalToLocal(20, sidebarBlock.container.initialY);
+    sidebarBlock.container.x = blockPos.x;
+    sidebarBlock.container.y = blockPos.y;
+  })
+
+  sidebar.sidebarTexts.forEach(sidebarText => {
+    sidebarText[0].scale /= zoom;
+    
+    let blockPos = stage.globalToLocal(20, sidebarText[1]);
+    sidebarText[0].x = blockPos.x;
+    sidebarText[0].y = blockPos.y;
+  })
+}
+
+function zoomButtons(stage, canvas, zoomIntensity, sidebar) {
   // zoom buttons (might be better to replace with html buttons)
   let zoomIn = new Shape();
   zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
@@ -63,7 +91,7 @@ function zoomButtons(stage, canvas, zoomIntensity) {
   stage.addChild(zoomIn);
 
   zoomIn.addEventListener("click", (event) => {
-    scale(stage, zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
+    scale(stage, zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects, sidebar);
   })
 
   let zoomOut = new Shape();
@@ -72,7 +100,7 @@ function zoomButtons(stage, canvas, zoomIntensity) {
   stage.addChild(zoomOut);
 
   zoomOut.addEventListener("click", (event) => {
-    scale(stage, 1/zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects);
+    scale(stage, 1/zoomIntensity, [canvas.width/2, canvas.height/2], staticObjects, sidebar);
   })
 }
 
@@ -117,7 +145,7 @@ window.addEventListener("load", () => {
   
   // set up a customizable background screen
   let screen = new Shape();
-  screen.graphics.beginLinearGradientFill(["#fafafa" ,"#fafafa"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
+  screen.graphics.beginLinearGradientFill(["#eaeaea" ,"#eaeaea"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
 
@@ -129,16 +157,16 @@ window.addEventListener("load", () => {
   // mouse wheel zoom
   canvas.addEventListener("wheel", (event) => {
     let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
-    scale(stage, zoom, [stage.mouseX, stage.mouseY], staticObjects);
+    scale(stage, zoom, [stage.mouseX, stage.mouseY], staticObjects, sidebar);
   });
 
   // click and drag pan
-  pan(stage, screen, staticObjects);
+  pan(stage, screen, staticObjects, sidebar);
 
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 
   // zoom buttons
-  //zoomButtons(stage, canvas, zoomIntensity);
+  //zoomButtons(stage, canvas, zoomIntensity, sidebar);
   
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
 

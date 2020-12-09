@@ -9,6 +9,7 @@ export class Sidebar {
     rect: Graphics.RoundRect;
     
     sidebarBlocks: Block[]; 
+    sidebarTexts: [Text, Number][];
     blocks: Block[];
     // have buttons be Blocks so that pressmove can work. on mousbuttondown add a new block to the sidebar.
     // blocks should have a sidebar state where they look different.
@@ -18,9 +19,11 @@ export class Sidebar {
       this.container.y = 0;
 
       this.blocks = [];
+      this.sidebarBlocks = [];
+      this.sidebarTexts = [];
   
       this.shape = new Shape();
-      this.shape.graphics.beginStroke("#ddd");
+      this.shape.graphics.beginStroke("#fff");
       this.shape.graphics.setStrokeStyle(5);
       this.shape.graphics.beginFill("#fff");
       this.rect = new Graphics.RoundRect(0, 0, 400, 1600, 0, 0, 0, 0);
@@ -94,12 +97,15 @@ export class Sidebar {
           let text: Text = new Text(data.name, "25px Inter");
           text.x = 20;
           text.y = y + 30;
+          this.sidebarTexts.push([text, text.y])
           y += 70;
 
           this.container.addChild(text);
-        }else {
+        } else {
           let block: Block = new Block(stage, this.blocks, 20, y, data.color, data.inputs, data.outputs, "test", data.type, true);
           block.sidebar = true;
+          this.sidebarBlocks.push(block);
+          block.container.initialY = y;
           y += 60;
         }
         

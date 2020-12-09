@@ -31,6 +31,10 @@ export class Block {
       this.container = new Container();
       this.container.x = x;
       this.container.y = y;
+      
+      if (sidebar) {
+        this.container.initialY;
+      }
      
       this.blocks = blocks;
       
@@ -72,7 +76,7 @@ export class Block {
         if (this.sidebar) {
           
             let newBlock: Block = new Block(stage, this.blocks,
-                event.stageX + this.clickOffset[0], event.stageY + this.clickOffset[1],
+                localPos.x + this.clickOffset[0], localPos.y + this.clickOffset[1],
                 color,  inputs, outputs, name, type, false);
             
             this.blocks.push(newBlock);
