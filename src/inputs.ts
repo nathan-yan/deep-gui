@@ -11,7 +11,10 @@ export class Input extends EditorElement{
     shape: Shape; 
     rect: Graphics.RoundRect;
 
+    fill: Graphics.Fill;
+
     connection: Output;
+    focusedOutput: Output;
   
     constructor(props) {
       super(props);
@@ -21,8 +24,8 @@ export class Input extends EditorElement{
       this.shape = new Shape();
       this.shape.graphics.beginStroke("#000");
       this.shape.graphics.setStrokeStyle(2);
-      this.shape.graphics.beginFill("#fff");
-  
+
+
       this.container.addChild(this.shape);
       this.container.addChild(this.inputName);
   
@@ -31,17 +34,51 @@ export class Input extends EditorElement{
                                          50, 50, 50, 50)
       this.shape.graphics.append(this.rect);
   
+      this.fill = new Graphics.Fill("#fff");
+      this.shape.graphics.append(this.fill);
       
       this.update();
   
       this.container.addEventListener("mouseover", (event) => {
-        this.inputName.color = "#faf";
+        this.fill.style = '#ccc';
       });
   
       this.container.addEventListener("mouseout", (event) => {
         this.inputName.color = "#000";
+        this.fill.style = '#fff';
+      })
+
+      this.container.addEventListener("mousedown", (event) => {
+        this.focusedOutput = this.connection;
+      })
+
+      this.container.addEventListener("pressmove", (event) => {
+        if (this.connection) {
+          console.log("REMOVING");
+          this.remove();
+        }
+
+        if (this.focusedOutput) {
+          this.focusedOutput.updateConnection(event.stageX, event.stageY);
+        }
+      })
+
+      this.container.addEventListener("pressup", (event) => {
+        if (this.focusedOutput) {
+          this.focusedOutput.handleUp(event);
+        }
       })
   
+    }
+
+    remove() {
+      // remove connection Output-side
+      this.connection.props.remove(this);
+      this.connection = null;
+
+      //remove connection Input-side
+      this.props.remove(this);
+
     }
   
     update() {
@@ -68,7 +105,7 @@ export class Inputs extends EditorElement{
       this.children = [];
   
       props.inputs.forEach((value: String, idx: number) => {
-        let inp: Input = new Input({name: value, blocks: props.blocks});
+        let inp: Input = new Input({name: value, blocks: props.blocks, remove: this.removeChild});
         this.inputs.push(inp);
         this.container.addChild(inp.container);
       });
@@ -78,6 +115,16 @@ export class Inputs extends EditorElement{
   //burver.
     addChild(pair: [Output, Input]) {
       this.children.push(pair);
+      pair[1].connection = pair[0];
+    }
+
+    removeChild = (single?: Input) => {
+      for (let i = 0; i < this.children.length; i++) {
+        if (this.children[i][1] == single) {
+          this.children.splice(i, 1);
+          break;
+        }
+      }
     }
 
     updateConnections() {

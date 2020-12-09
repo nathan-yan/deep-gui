@@ -13,7 +13,7 @@ export class Block {
     blockBody: BlockBody;
     inputs: Inputs;
     outputs: Outputs;
-    sidebar: Sidebar;  // the sidebar, if any, that this block belongs to. display the compact sidebar version of this block
+    sidebar: boolean;  // the sidebar, if any, that this block belongs to. display the compact sidebar version of this block
   
     blocks: Block[] = [];   // the list of all other blocks, since this is pass by reference we chillin on the memory usage B)
 
@@ -21,8 +21,10 @@ export class Block {
     //outputs: Output;
 
     children: [Input, Output][];
+
+    focusedNewBlock: Block;
   
-    constructor(stage: Stage, blocks: Block[], x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String, sidebar: Sidebar) {
+    constructor(stage: Stage, blocks: Block[], x: number, y: number, color: String, inputs: String[], outputs: String[], name: String, type: String, sidebar: boolean) {
       console.log(blocks);
       this.sidebar = sidebar;
   
@@ -39,8 +41,9 @@ export class Block {
           color: color,
           type: type,
           name: name,
-          isSidebar: sidebar != null
+          isSidebar: sidebar == true
        });
+      
       this.inputs = new Inputs({
         inputs: inputs,
         //blocks: this.blocks
@@ -53,54 +56,44 @@ export class Block {
   
       this.container.addChild(this.blockBody.container);
 
-      if (this.sidebar == null) {
+      if (!this.sidebar) {
         this.container.addChild(this.inputs.container);
         this.container.addChild(this.outputs.container);
       }
-      
+
       stage.addChild(this.container);
   
       // attach listeners
       this.blockBody.container.addEventListener('mousedown', (event) => {
-        console.log(event);
-        if (this.sidebar != null) {
-          if (this == this.sidebar.newConv) {
-            let newBlock: Block = new Block(stage, this.blocks,
-              this.sidebar.container.x + this.sidebar.newConvXOffset, this.sidebar.container.y + this.sidebar.newConvYOffset,
-             "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution-", this.sidebar);
-            
-            this.blocks.push(newBlock)
-            this.sidebar.newConv = newBlock;
-          }
-          else if (this == this.sidebar.newAttentive) {
-            let newBlock: Block = new Block(stage, this.blocks,
-                this.sidebar.container.x + this.sidebar.newAttentiveXOffset, this.sidebar.container.y + this.sidebar.newAttentiveYOffset,
-                "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write-", this.sidebar);
-            
-            this.blocks.push(newBlock);
-            this.sidebar.newAttentive = newBlock;
-          } 
-          this.sidebar = null
-          this.container.addChild(this.inputs.container);
-          this.container.addChild(this.outputs.container);
-          this.blockBody.isSidebar = false;
-          this.blockBody.completeText();
-          this.update();
-        }
-        
         let localPos = stage.globalToLocal(event.stageX, event.stageY);
         this.clickOffset = [this.container.x - localPos.x,
                                   this.container.y - localPos.y];
+
+        if (this.sidebar) {
+          
+            let newBlock: Block = new Block(stage, this.blocks,
+                event.stageX + this.clickOffset[0], event.stageY + this.clickOffset[1],
+                color,  inputs, outputs, name, type, false);
+            
+            this.blocks.push(newBlock);
+            this.focusedNewBlock = newBlock;
+          } 
         
       })
   
       this.blockBody.container.addEventListener('pressmove', (event) => {
-        let localPos = stage.globalToLocal(event.stageX, event.stageY);
-        this.container.x = localPos.x + this.clickOffset[0];
-        this.container.y = localPos.y + this.clickOffset[1];
+        let localPos: Point = stage.globalToLocal(event.stageX, event.stageY);
 
-        this.outputs.updateConnections();
-        this.inputs.updateConnections();
+        if (!this.sidebar){
+          this.container.x = localPos.x + this.clickOffset[0];
+          this.container.y = localPos.y + this.clickOffset[1];
+
+          this.outputs.updateConnections();
+          this.inputs.updateConnections();
+        }else {
+          this.focusedNewBlock.container.x = localPos.x + this.clickOffset[0];
+          this.focusedNewBlock.container.y = localPos.y + this.clickOffset[1];
+        }
       })
   
       this.update();
@@ -132,12 +125,15 @@ export class Block {
       // find the bounds of BlockBody
       let maxWidth: number = 0;
   
-      if (!this.blockBody.isSidebar) {
+      if (!this.sidebar){
         maxWidth = util.updateMax(maxWidth, this.inputs.update());
         maxWidth = util.updateMax(maxWidth, this.outputs.update());
-        maxWidth = util.updateMax(maxWidth, this.blockBody.container.getBounds().width);
-        this.blockBody.update(maxWidth + 2 * constants.TEXT_PADDING_LR);
       }
+
+      maxWidth = util.updateMax(maxWidth, this.blockBody.container.getBounds().width);
+      
+      this.blockBody.update(maxWidth + 2 * constants.TEXT_PADDING_LR);
+    
       // after the maxWidth has been computed, position everything
       
       // position inputs
@@ -147,13 +143,9 @@ export class Block {
       // position outputs
       this.outputs.container.x = (maxWidth - this.outputs.container.getBounds().width) / 2;
       this.outputs.container.y = -constants.TEXT_PADDING_UD - constants.IO_PADDING_UD - constants.IO_TEXT_PADDING_UD * 3;
-
-     
     }
 
-    createConnections = () => {
-
-    }
+    
   }
 
 export class BlockBody extends EditorElement{
@@ -182,25 +174,29 @@ export class BlockBody extends EditorElement{
       // default values here are for sidebar display
       this.rect = new Graphics.RoundRect(-constants.TEXT_PADDING_LR, -10,
         180, 60,
-        30, 30, 30, 30)
+        100, 100, 100, 100);
         
       // create text
       if (props.isSidebar) {
-        this.blockName = new Text("new", "40px Inter", props.color);
+        this.blockType = new Text(props.type, "40px Inter", props.color);
       } else {
         this.completeText();
+        
       }
   
-      this.container.addChild(this.blockName);
-  
-      
-  
+      this.container.addChild(this.blockType); 
+
+      if (props.isSidebar) {
+        this.shape.graphics.beginFill("#fff");
+        this.shape.graphics.beginStroke("#fff");
+      }
+
       this.shape.graphics.append(this.rect);
     }
   
     completeText = () => {
       console.log("COMPLETE TEXT:" + this.props.name + this.props.color)
-      this.container.removeChild(this.blockName)
+      this.container.removeChild(this.blockType)
       this.blockName = new Text(this.props.name, "40px Inter", this.props.color);
       this.blockType = new Text(this.props.type + " :: ", "40px Inter", "#000");
       this.blockName.x = this.blockType.getBounds().width;
@@ -210,20 +206,30 @@ export class BlockBody extends EditorElement{
       this.rect.radiusTR = 100;
       this.rect.radiusBR = 100;
       this.rect.radiusBL = 100;
-      this.rect.y = -constants.TEXT_PADDING_UD - 3;
     }
   
     update = (width: number) => {
-      console.log(width);
   
       let bounds: Rectangle = this.container.getBounds();
-  
+
+      let totalTextWidth: number = this.blockType.getBounds().width;
+      if (this.blockName) {
+        // if this is a block in the sidebar we won't have a block name
+        totalTextWidth += this.blockName.getBounds().width;
+      }
+
       this.rect.w = width;
-      this.rect.h = bounds.height + constants.TEXT_PADDING_UD * 2;
-  
-      let totalTextWidth: number = this.blockType.getBounds().width + this.blockName.getBounds().width;
+      if (this.isSidebar) {
+        this.rect.h = bounds.height;
+      }else{
+        this.rect.h = bounds.height + constants.TEXT_PADDING_UD * 2;
+        this.rect.y = -constants.TEXT_PADDING_UD - 3;
+      }
+
       this.blockType.x = (width - 2 * constants.TEXT_PADDING_LR - totalTextWidth) / 2;
-      this.blockName.x = this.blockType.getBounds().width + (width - 2 * constants.TEXT_PADDING_LR - totalTextWidth) / 2;
-      
+
+      if (this.blockName){
+        this.blockName.x = this.blockType.getBounds().width + (width - 2 * constants.TEXT_PADDING_LR - totalTextWidth) / 2;
+      }
     }
   }

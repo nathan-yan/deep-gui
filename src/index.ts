@@ -100,6 +100,7 @@ window.addEventListener("load", () => {
   
   let canvas = <HTMLCanvasElement> document.getElementById('myCanvas');
   let blocks: Block[] = [];
+  let sidebarBlocks: Block[] = [];
 
   let ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
@@ -134,14 +135,10 @@ window.addEventListener("load", () => {
   // click and drag pan
   pan(stage, screen, staticObjects);
 
-  let block: Block = new Block(stage, blocks, 500, 200, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution_", null);
-  let block2: Block = new Block(stage, blocks, 200, 500, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write_", null);
-  blocks.push(block);
-  blocks.push(block2);
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 
   // zoom buttons
-  zoomButtons(stage, canvas, zoomIntensity);
+  //zoomButtons(stage, canvas, zoomIntensity);
   
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
 

@@ -53,22 +53,7 @@ export class Output extends EditorElement{
       this.shape.graphics.append(this.rect);
 
       this.container.addEventListener("pressmove", (event) => {
-        this.move.x = -constants.IO_TEXT_PADDING_LR + this.rect.w / 2;
-  
-        this.shape.graphics.endFill()
-  
-        let pt: Point = this.container.globalToLocal(event.stageX, event.stageY);
-        pt.y += 5;
-        pt.x += 5;
-        this.arrow.x = pt.x;
-        this.arrow.y = pt.y;
-        this.arrow.cp1x = -constants.IO_TEXT_PADDING_LR + this.rect.w / 2;
-        this.arrow.cp1y = (pt.y + (-constants.IO_TEXT_PADDING_UD - 1)) / 2;
-  
-        this.arrow.cp2x = pt.x;
-        this.arrow.cp2y = (pt.y + (-constants.IO_TEXT_PADDING_UD - 1)) / 2;
-  
-        
+        this.updateConnection(event.stageX, event.stageY);
         //this.p1.x = pt.x + 2.5;
         //this.p1.y = pt.y - 2.5;
   
@@ -80,20 +65,41 @@ export class Output extends EditorElement{
   
       this.container.addEventListener("pressup", (event) => {
         console.log("clicked up! ")
-        if(!this.props.checkConnection(event, this)) {
-          this.arrow.x = 0;
-          this.arrow.y = 0;
-          this.arrow.cp1x = 0;
-          this.arrow.cp2x = 0;
-          this.arrow.cp1y = 0;
-          this.arrow.cp2y = 0;
-        } 
+        this.handleUp(event);
         
       })
   
       this.update();
     }
 
+    handleUp = (event) => {
+      if(!this.props.checkConnection(event, this)) {
+        this.arrow.x = 0;
+        this.arrow.y = 0;
+        this.arrow.cp1x = 0;
+        this.arrow.cp2x = 0;
+        this.arrow.cp1y = 0;
+        this.arrow.cp2y = 0;
+      } 
+    }
+
+    updateConnection(gx: number, gy: number) {
+      this.move.x = -constants.IO_TEXT_PADDING_LR + this.rect.w / 2;
+  
+        this.shape.graphics.endFill()
+  
+        let pt: Point = this.container.globalToLocal(gx, gy);
+        pt.y += 5;
+        pt.x += 5;
+        this.arrow.x = pt.x;
+        this.arrow.y = pt.y;
+        this.arrow.cp1x = -constants.IO_TEXT_PADDING_LR + this.rect.w / 2;
+        this.arrow.cp1y = (pt.y + (-constants.IO_TEXT_PADDING_UD - 1)) / 2;
+  
+        this.arrow.cp2x = pt.x;
+        this.arrow.cp2y = (pt.y + (-constants.IO_TEXT_PADDING_UD - 1)) / 2;
+  
+    }
   
     update() {
       let bounds: Rectangle = this.inputName.getBounds();
@@ -126,7 +132,7 @@ export class Outputs extends EditorElement{
       this.parents = [];
   
       props.inputs.forEach((value: String, idx: number) => {
-        let inp: Output = new Output({name: value, checkConnection: this.props.checkConnection, block: this.props.block});
+        let inp: Output = new Output({name: value, checkConnection: this.props.checkConnection, remove: this.removeChild, block: this.props.block});
         this.inputs.push(inp);
         this.container.addChild(inp.container);
       });
@@ -153,6 +159,20 @@ export class Outputs extends EditorElement{
       this.updateConnections();
     }
 
+    resetConnections = () => {
+      this.arrowShapes.graphics.clear();
+      this.arrowShapes.graphics.beginStroke("#000");
+      this.arrowShapes.graphics.setStrokeStyle(3);
+        
+      this.arrows.forEach((graphic: [Graphics.MoveTo, Graphics.BezierCurveTo], idx: number) => {
+        
+        this.arrowShapes.graphics.append(graphic[0]);
+        this.arrowShapes.graphics.append(graphic[1]);
+      })
+
+      this.updateConnections();
+    }
+
     update(): number {
       let accWidth = 0;
       this.inputs.forEach((inp: Output, idx: number) => {
@@ -162,6 +182,24 @@ export class Outputs extends EditorElement{
       });
 
       return accWidth - constants.IO_PADDING_LR;
+    }
+
+    removeChild = (single: Input) => {
+      // since there can only be one connection to an input, 
+      // specifying the input uniquely identifies the input AND the corresponding output
+
+      for (let i = 0; i < this.parents.length; i++){
+        if (this.parents[i][1] == single) {
+          // remove this connection from the list of parents
+          this.parents.splice(i, 1);
+          this.arrows.splice(i, 1);
+          this.resetConnections();
+          break;
+        }
+      }
+
+      console.log(this.parents);
+      console.log(this.arrows);
     }
 
     updateConnections() {
