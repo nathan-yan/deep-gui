@@ -4,12 +4,15 @@ import compiler
 
 app = Flask(__name__)
 
+
 @app.route('/', methods=["GET", "POST"])
 def test():
     if request.method == "POST":
         networkJson = request.json
-        compiledNetwork = compiler.write(networkJson, compiler.compile(networkJson)).replace('\n', '<br>').replace(' ', '&nbsp')
+        compiledNetwork = compiler.write(networkJson, compiler.compile(
+            networkJson)).replace('\n', '<br>').replace(' ', '&nbsp')
         return compiledNetwork
+
 
 if __name__ == "__main__":
     app.run(debug=True)
