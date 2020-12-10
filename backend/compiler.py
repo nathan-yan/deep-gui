@@ -1,6 +1,89 @@
 import datasets
+import addTorch
 
-# test json
+# order blocks
+def compile(graph):
+   orderedBlocks = []
+   compiledBlocks = {}
+   for block in graph:
+      compiledBlocks[block] = False
+   for block in graph:
+      if not compiledBlocks[block]:
+         topologicalSort(graph, block, orderedBlocks, compiledBlocks)
+   return orderedBlocks
+
+# recursively stack blocks in order
+def topologicalSort(graph, key, stack, visited):
+   visited[key] = True
+   for value in graph[key]['outputs']:
+      if not visited[value]:
+         topologicalSort(graph, value, stack, visited)
+   stack.append(key)
+
+# write
+def write(graph, order):
+   # define imports
+   imports = 'import torch\nimport torch.nn as nn\nimport torch.nn.functional as F\nimport torch.optim as optim\n\n'
+
+   # define dataset
+   dataset = None
+
+   # define network
+   net = 'class Net(nn.Module):\n   def __init__(self):\n      super(Net, self).__init__()\n'
+
+   # define forward function
+   forward = '\n   def forward(self, x):\n'
+
+   # define initialize model
+   initialize = '\nnet = Net()\n'
+
+   # define loss
+   loss = None
+
+   # define optimizer
+   optimizer = None
+
+   # define train/test
+   traintest = None
+
+   # generate script from stack
+   while order:
+      block = order.pop()
+      # check for loss block
+      if 'CrossEntropyLoss' == graph[block]['function']:
+         loss = addTorch.addCrossEntropyLoss(graph[block]['attributes'])
+
+      # check for optimizer block
+      elif 'SGD' == graph[block]['function']:
+         optimizer = addTorch.addSGD(graph[block]['attributes'])
+
+      # check for dataset
+      elif 'CIFAR10' == graph[block]['function']:
+         dataset, traintest = datasets.cifar10Dataset()
+
+      # add blocks to the model
+      elif 'Conv2d' == graph[block]['function']:
+         addNet, addForward = addTorch.addConv2d(graph[block]['attributes'])
+         net += addNet
+         forward += addForward
+         
+      elif 'Linear' == graph[block]['function']:
+         addNet, addForward = addTorch.addLinear(graph[block]['attributes'])
+         net += addNet
+         forward += addForward
+      
+      elif 'ReLU' == graph[block]['function']:
+         forward += addTorch.addReLU()
+      
+      elif 'Sigmoid' == graph[block]['function']:
+         forward += addTorch.addSigmoid()
+
+      elif 'Tanh' == graph[block]['function']:
+         forward += addTorch.addReLU()
+
+   return imports + dataset + net + forward + initialize + loss + optimizer + traintest
+
+# test
 test = {
    "Conv2d_1":{
       "outputs":[
@@ -11,7 +94,7 @@ test = {
          6,
          5
       ],
-      "function":"nn.Conv2d"
+      "function":"Conv2d"
    },
    "ReLU_1":{
       "outputs":[
@@ -20,7 +103,7 @@ test = {
       "attributes":[
          
       ],
-      "function":"nn.ReLU"
+      "function":"ReLU"
    },
    "Conv2d_2":{
       "outputs":[
@@ -31,7 +114,7 @@ test = {
          10,
          5
       ],
-      "function":"nn.Conv2d"
+      "function":"Conv2d"
    },
    "ReLU_2":{
       "outputs":[
@@ -40,7 +123,7 @@ test = {
       "attributes":[
          
       ],
-      "function":"nn.ReLU"
+      "function":"ReLU"
    },
    "CrossEntropyLoss_1":{
       "outputs":[
@@ -49,7 +132,7 @@ test = {
       "attributes":[
          
       ],
-      "function":"nn.CrossEntropyLoss"
+      "function":"CrossEntropyLoss"
    },
    "SGD_1":{
       "outputs":[
@@ -58,7 +141,7 @@ test = {
       "attributes":[
          "lr=0.001"
       ],
-      "function":"optim.SGD"
+      "function":"SGD"
    },
    "CIFAR10":{
       "outputs":[
@@ -67,7 +150,7 @@ test = {
       "attributes":[
          
       ],
-      "function":"cifar10_dataset"
+      "function":"CIFAR10"
    },
    "Flatten_1":{
       "outputs":[
@@ -76,7 +159,7 @@ test = {
       "attributes":[
          
       ],
-      "function":"nn.Flatten"
+      "function":"Flatten"
    },
    "Linear_1":{
       "outputs":[
@@ -86,89 +169,9 @@ test = {
          5760,
          10
       ],
-      "function":"nn.Linear"
+      "function":"Linear"
    }
 }
-
-# order blocks
-def compile(graph):
-    orderedBlocks = []
-    compiledBlocks = {}
-    for block in graph:
-        compiledBlocks[block] = False
-    for block in graph:
-        if not compiledBlocks[block]:
-            topologicalSort(graph, block, orderedBlocks, compiledBlocks)
-    return orderedBlocks
-
-# recursively stack blocks in order
-def topologicalSort(graph, key, stack, visited):
-    visited[key] = True
-    for value in graph[key]['outputs']:
-        if not visited[value]:
-            topologicalSort(graph, value, stack, visited)
-    stack.append(key)
-
-# write
-def write(graph, order):
-    # define imports
-    imports = 'import torch\nimport torch.nn as nn\nimport torch.optim as optim\n\n'
-
-    # define dataset
-    dataset = None
-
-    # define sequential model
-    net = 'net = nn.Sequential(\n'
-
-    # define loss
-    loss = None
-
-    # define optimizer
-    optimizer = None
-
-    # define train/test
-    traintest = None
-
-    # generate script from stack
-    while order:
-        block = order.pop()
-        # check for loss block
-        if 'Loss' in graph[block]['function']:
-            loss = 'criterion = ' + graph[block]['function'] + '(' + fillAttributes(graph, block) + ')\n'
-
-        # check for optimizer block
-        elif 'optim' in graph[block]['function']:
-            optimizer = 'optimizer = ' + graph[block]['function'] + '(' + 'net.parameters()'
-            if graph[block]['attributes']:
-                optimizer += ',' + fillAttributes(graph, block) + ')\n'
-            else:
-                optimizer += ')\n'
-
-        # check for dataset
-        elif 'dataset' in graph[block]['function']:
-            if graph[block]['function'] == 'cifar10_dataset':
-                dataset, traintest = datasets.cifar10Dataset()
-
-        # add blocks to the model
-        else:
-            net += '   ' + graph[block]['function'] + '(' + fillAttributes(graph, block) + '),\n'
-
-    net += ')\n'
-
-    return imports + dataset + net + loss + optimizer + traintest
-
-# fill in the attributes
-def fillAttributes(graph, block):
-    attributes = ''
-    if graph[block]['attributes']:
-        for attribute in graph[block]['attributes']:
-            if '=' in str(attribute):
-                attributes += attribute
-            else:
-                attributes += str(attribute)
-            attributes += ','
-        attributes = attributes[:-1]
-    return attributes
 
 # view generated code
 print(write(test, compile(test)))
