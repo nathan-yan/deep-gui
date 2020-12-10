@@ -2,6 +2,7 @@ import { Stage, Point, Rectangle, Ticker, Graphics, Container, Shape, Text } fro
 
 import * as util from "./util";
 import * as constants from "./constants";
+import * as monaco from 'monaco-editor';
 
 import {EditorElement} from "./editorElement";
 import {Block, BlockBody} from "./block";
@@ -9,20 +10,21 @@ import {Block, BlockBody} from "./block";
 import {Sidebar} from './sidebar';
 
 // store all non-moving elements
-let staticObjects: any[] = new Array();
+let staticObjects: [Shape, number, number][] = new Array();
 
 // scale function
 function scale(stage, zoom, zoomPt, staticObjects) {
   // set zoom bounds
-  if (zoom > 1 && stage.scale < 5 || zoom < 1 && stage.scale > 0.2) {
-    let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
-    stage.regX = localPos.x;
-    stage.regY = localPos.y;
-    stage.x = zoomPt[0];
-    stage.y = zoomPt[1];
+  
+  let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
+  stage.regX = localPos.x;
+  stage.regY = localPos.y;
+  stage.x = zoomPt[0];
+  stage.y = zoomPt[1];
 
-    stage.scale *= zoom;
+  stage.scale = zoom;
 
+    /*
     staticObjects.forEach(object => {
       object[0].graphics.command.w /= zoom;
       object[0].graphics.command.h /= zoom;
@@ -31,10 +33,9 @@ function scale(stage, zoom, zoomPt, staticObjects) {
       object[0].graphics.command.x = objPos.x;
       object[0].graphics.command.y = objPos.y;
       console.log(stage.scale);
-    })
+    })*/
 
-    stage.update();
-  }
+    //stage.update();
 }
 
 // pan function
@@ -46,11 +47,12 @@ function pan(stage, screen, staticObjects) {
       stage.x = initPos[0] + event2.stageX - event1.stageX;
       stage.y = initPos[1] + event2.stageY - event1.stageY;
       
+      /*
       staticObjects.forEach(object => {
         let pos = stage.globalToLocal(object[1], object[2]);
-        object[0].graphics.command.x = pos.x;
-        object[0].graphics.command.y = pos.y;
-      })      
+        object[0].x = pos.x;
+        object[0].y = pos.y;
+      })     */ 
     })
   })
 }
@@ -97,18 +99,33 @@ function tickGenerator(stage: Stage) {
 
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
-  
+  // set up the code editor
+  /*
+  monaco.editor.create(document.getElementById('codeEditor'), {
+    value: [
+      'function x() {',
+      '\tconsole.log("Hello world!");',
+      '}'
+    ].join('\n'),
+    language: 'javascript'
+  });*/
+
   let canvas = <HTMLCanvasElement> document.getElementById('myCanvas');
   let blocks: Block[] = [];
   let sidebarBlocks: Block[] = [];
+
+  let displayContainer = new Container();
+  
+  displayContainer.x = 300;
+  displayContainer.y = 0;
 
   let ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
 
   canvas.width = 2000;
-  canvas.height = 1600;
+  canvas.height = 1400;
   canvas.style.width = "1000px";
-  canvas.style.height = "800px";
+  canvas.style.height = "700px";
   ctx.scale(2, 2);
 
   //Create a stage by getting a reference to the canvas
@@ -120,20 +137,30 @@ window.addEventListener("load", () => {
   screen.graphics.beginLinearGradientFill(["#fafafa" ,"#fafafa"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
+  stage.addChild(displayContainer);
 
-  let sidebar = new Sidebar(stage);
+  let sidebar = new Sidebar(stage, displayContainer, staticObjects);
 
   // change how much stage zooms each step
   let zoomIntensity = 1.2;
+  let zoom = 1;
 
   // mouse wheel zoom
   canvas.addEventListener("wheel", (event) => {
-    let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
-    scale(stage, zoom, [stage.mouseX, stage.mouseY], staticObjects);
+    //console.log(event.deltaY + " " + zoom);
+    //let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
+    zoom += event.deltaY / 100;
+    if (zoom < 0.1) {
+      zoom = 0.1
+    }else if (zoom > 3) {
+      zoom = 3
+    }
+
+    scale(displayContainer, zoom, [stage.mouseX, stage.mouseY], staticObjects);
   });
 
   // click and drag pan
-  pan(stage, screen, staticObjects);
+  pan(displayContainer, screen, staticObjects);
 
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 

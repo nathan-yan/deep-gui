@@ -5,6 +5,8 @@ import {EditorElement} from './editorElement';
 import { Output } from "./outputs";
 import { Block } from "./block";
 
+import * as util from './util'
+
 export class Input extends EditorElement{
     container: Container;
     inputName: Text;
@@ -15,6 +17,11 @@ export class Input extends EditorElement{
 
     connection: Output;
     focusedOutput: Output;
+
+    background: String;
+    textColor: String;
+
+    params: any; 
   
     constructor(props) {
       super(props);
@@ -25,7 +32,6 @@ export class Input extends EditorElement{
       this.shape.graphics.beginStroke("#000");
       this.shape.graphics.setStrokeStyle(2);
 
-
       this.container.addChild(this.shape);
       this.container.addChild(this.inputName);
   
@@ -33,23 +39,54 @@ export class Input extends EditorElement{
                                          0, 0, 
                                          50, 50, 50, 50)
       this.shape.graphics.append(this.rect);
+
+      this.params = props.params;
   
-      this.fill = new Graphics.Fill("#fff");
+      if (this.props.availableParams) {
+        this.fill = new Graphics.Fill("#222");
+        this.inputName.color = "#eee";
+      }else{
+        this.fill = new Graphics.Fill("#fff");
+      }
+
       this.shape.graphics.append(this.fill);
       
       this.update();
   
       this.container.addEventListener("mouseover", (event) => {
-        this.fill.style = '#ccc';
+        if (!this.connection) {
+          if (this.props.availableParams) {
+            this.fill.style = "#555"
+          }else{
+            this.fill.style = '#ccc';
+          }
+        }else{
+          this.inputName.color = "#fff";
+        }
       });
   
       this.container.addEventListener("mouseout", (event) => {
         this.inputName.color = "#000";
-        this.fill.style = '#fff';
+        if (!this.connection) {
+          
+          if (this.props.availableParams) {
+            this.fill.style = "#222";
+            this.inputName.color = "#eee";
+          }else{
+            this.fill.style= "#fff";
+          }
+        }else{
+          this.inputName.color = "#fff";
+
+        }
+        
       })
 
       this.container.addEventListener("mousedown", (event) => {
         this.focusedOutput = this.connection;
+        if (this.params) {
+          util.updateParameterEditor(this);
+        }
       })
 
       this.container.addEventListener("pressmove", (event) => {
@@ -104,8 +141,8 @@ export class Inputs extends EditorElement{
       this.container = new Container();
       this.children = [];
   
-      props.inputs.forEach((value: String, idx: number) => {
-        let inp: Input = new Input({name: value, blocks: props.blocks, remove: this.removeChild});
+      props.inputs.forEach((i: any, idx: number) => {
+        let inp: Input = new Input({name: i.name, params: props.params, availableParams: i.params, blocks: props.blocks, remove: this.removeChild, block: props.block});
         this.inputs.push(inp);
         this.container.addChild(inp.container);
       });
@@ -113,9 +150,16 @@ export class Inputs extends EditorElement{
       this.update();
     }
   //burver.
-    addChild(pair: [Output, Input]) {
+    addChild(pair: [Output, Input]): boolean {
+      if (pair[1].connection != null) {
+        // there is already an output connected to this input, so we'll disconnect the original output 
+        return false;
+      }
+
       this.children.push(pair);
       pair[1].connection = pair[0];
+
+      return true
     }
 
     removeChild = (single?: Input) => {

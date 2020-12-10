@@ -24,6 +24,11 @@
     "webpack-html-plugin": "^0.1.1"
   },
   "dependencies": {
-    "jquery": "^3.5.1"
+    "css-loader": "^5.0.1",
+    "file-loader": "^6.2.0",
+    "jquery": "^3.5.1",
+    "monaco-editor": "^0.21.2",
+    "monaco-editor-webpack-plugin": "^2.0.0",
+    "style-loader": "^2.0.0"
   }
 }
