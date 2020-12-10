@@ -27,14 +27,33 @@
         font-weight: "700";
 
     }
+
+    #compile-button {
+        border-style:  solid;
+        
+        border-radius: 0px;
+        width: fit-content;
+        padding: 5px 10px;
+
+        font-size: 20px;
+
+        margin-bottom: 50px; 
+    }
+
+    #compile-button:hover {
+        background: #eee;
+        cursor: pointer;
+    }
 </style>
 
 <body>
     <div style = 'display: flex;'>
         <canvas id = 'myCanvas' style=""></canvas>
-        <input style = 'position: absolute; top: 100px; left: 100px' type = 'text' id = 'name-editor'>
+        <input style = 'position: absolute; top: -100px; left: 100px' type = 'text' id = 'name-editor'>
 
-        <div style = 'height: 100%; width: 100%; font-family: "Inter"; font-size: 20px; padding: 30px; overflow:scroll'>
+        <div style = 'height: 650px; width: 100%; font-family: "Inter"; font-size: 20px; padding: 30px; overflow:scroll'>
+            <div id = 'compile-button'>Compile -></div>
+
             <span id = "block-type">conv2d</span> <span id = "block-name" style = "color:#5B60E0">conv_1</span> 
             <br/>
             <span style = "font-size: 15px" id = 'input-name'>params</span> 

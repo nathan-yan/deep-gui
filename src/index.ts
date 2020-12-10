@@ -8,6 +8,8 @@ import {EditorElement} from "./editorElement";
 import {Block, BlockBody} from "./block";
 
 import {Sidebar} from './sidebar';
+import { Output } from "./outputs";
+import { Input } from "./inputs";
 
 // store all non-moving elements
 let staticObjects: [Shape, number, number][] = new Array();
@@ -158,6 +160,55 @@ window.addEventListener("load", () => {
 
     scale(displayContainer, zoom, [stage.mouseX, stage.mouseY], staticObjects);
   });
+
+  document.getElementById("compile-button").onclick = () => {
+    // get all the blocks
+
+    // each block is in the format:
+    /*
+      block_name: {
+       
+        inputs: [   // where this block's inputs come from
+          past_block_name.output_name, ...
+        ],
+        attributes : [
+          attr1, ...
+        ]
+      }
+
+      // if an input has params, it is not considered a real input and gets placed into `attributes`
+      // however if the input has a connection, it IS considered a real input and gets placed into `inputs`
+    */
+    let jsonNetwork = {};
+    console.log(sidebar.blocks);
+    sidebar.blocks.forEach((block: Block, idx: number) => {
+      let blockData = {
+        inputs: {},
+        attributes: [],
+        type: block.blockBody.blockType.text //oof 
+      };
+
+      block.inputs.children.forEach((pair: [Output, Input], idx: number) => {
+        blockData.inputs[pair[1].props.name] = pair[0].props.block.blockBody.name + "." + pair[0].props.name;
+      })
+
+      let seenParams = new Set();
+      block.inputs.inputs.forEach((inp: Input, idx: number) => {
+        if (inp.props.availableParams) {
+          inp.props.availableParams.forEach((param, idx) => {
+            if (!seenParams.has(param)){
+              blockData.attributes.push(param + "=" + inp.props.params[param].value);
+              seenParams.add(param);
+            }
+          })
+        }
+      })
+      
+      jsonNetwork[block.blockBody.name] = blockData;
+    });
+
+    console.log(JSON.stringify(jsonNetwork));
+  }
 
   // click and drag pan
   pan(displayContainer, screen, staticObjects);

@@ -57,19 +57,19 @@ export class Sidebar {
             } ,
             "kernel_size" : {
               type: "int | [int, int]",
-              value: [1, 1]
+              value: "[1, 1]"
             },
             "stride" : {
               type: "int | [int, int]",
-              value: [1, 1]
+              value: "[1, 1]"
             },
             "padding" : {
               type: "int | [int, int]",
-              value: [0, 0]
+              value: "[1, 1]"
             },
             "dilation" : {
               type: "int | [int, int]",
-              value: [1, 1]
+              value: "[1, 1]"
             },
             "groups" : {
               type: "int",
@@ -203,6 +203,20 @@ export class Sidebar {
         }, 
         {
           color: "#1480FF",
+
+          count: 0,
+          default_name: "add",
+          inputs: [{
+            name: 'input1'
+          }, 
+          {
+            name: 'input2'
+          }],
+          outputs: ['output'],
+          type: "add"
+        },
+        {
+          color: "#1480FF",
           params: {
             "file path" : {
               type: ".grad",
@@ -238,10 +252,10 @@ export class Sidebar {
       blockData.forEach((data: any, idx: number) =>  {
         if (data.type == 'separator'){
           let text: Text = new Text(data.name, "25px Inter");
-          text.x = 30;
-          text.y = y + 30;
+          text.x = 50;
+          text.y = y + 50;
           this.sidebarTexts.push([text, text.y])
-          y += 70;
+          y += 90;
 
           this.container.addChild(text);
         }else {
@@ -250,10 +264,10 @@ export class Sidebar {
           // the block, we need to copy it so we don't edit 
           // the parameters of other blocks
           // this will happen inside the block class though
-          let block: Block = new Block(stage, data.params, this.blocks, 30, y, data.color, data.inputs, data.outputs, "test", data.type, true, screen);
+          let block: Block = new Block(stage, data.params, this.blocks, 50, y, data.color, data.inputs, data.outputs, "test", data.type, true, screen);
           
 
-          staticObjects.push([block.container, 30, y]);
+          staticObjects.push([block.container, 50, y]);
 
           block.sidebar = true;
           this.sidebarBlocks.push(block);
