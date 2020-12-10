@@ -28,7 +28,7 @@ export class Block {
     focusedNewBlock: Block;
     parameters: any; 
   
-    constructor(stage: Container, parameters: any, blocks: Block[], x: number, y: number, color: String, inputs: any[], outputs: String[], name: String, type: String, sidebar: boolean, displayStage?: Container) {
+    constructor(stage: Container, parameters: any, blocks: Block[], x: number, y: number, color: String, inputs: any[], outputs: String[], name: String, type: String, sidebar: boolean, displayStage?: Container, props?: any) {
       console.log(blocks);
       this.sidebar = sidebar;
       this.stage = stage;
@@ -89,7 +89,9 @@ export class Block {
 
             let newBlock: Block = new Block(this.stage, paramsClone, this.blocks,
                 localPos.x + this.clickOffset[0], localPos.y + this.clickOffset[1],
-                color,  inputs, outputs, name, type, false);
+                color,  inputs, outputs, type + "_" + props.count, type, false);
+            
+                props.count++;
             
             this.blocks.push(newBlock);
             this.focusedNewBlock = newBlock;

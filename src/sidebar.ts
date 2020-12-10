@@ -115,13 +115,75 @@ export class Sidebar {
           outputs: ['output'],
           type: "conv2d"
         },
+
+        {
+          color: "#5B60E0",
+          count: 0,
+          default_name: "maxpool",
+          params: {
+            
+            "kernel_size" : {
+              type: "int | [int, int]",
+              value: "[1, 1]"
+            },
+            "stride" : {
+              type: "int | [int, int]",
+              value: "[1, 1]"
+            },
+            "padding" : {
+              type: "int | [int, int]",
+              value: "[1, 1]"
+            },
+            "dilation" : {
+              type: "int | [int, int]",
+              value: "[1, 1]"
+            },
+            
+          },
+          inputs: [
+            
+            {
+              name: 'input'
+            },
+            {
+              name: 'params',
+              params: [
+                
+                "kernel_size",
+                "stride",
+                "padding",
+                "dilation",
+                
+              ]
+            }],
+          outputs: ['output'],
+          type: "maxpool"
+        },
+
+
+
+
         {
           color: "#5B60E0",
 
           count: 0,
           default_name: "dense",
+          params : {
+            'in_features' : {
+              type: "int",
+              value: "1"
+            },
+            'out_features' : {
+              type: "int",
+              value: "1"
+            }
+          },
           inputs: [{
-            name: 'weights'
+            name: 'weights',
+            params : [
+              'in_features',
+              'out_features'
+            ]
           }, 
           {
             name: 'input'
@@ -155,6 +217,25 @@ export class Sidebar {
           outputs: ['output'],
           type: "sigmoid"
         },
+        {
+          color: "#2B9D89",
+          params: {
+            "dim" : {
+              type: "int",
+              value: "0"
+            }
+          },
+          count: 0,
+          default_name: "softmax",
+          inputs: [{
+            name: "input"
+          }, {
+            name: "dimension",
+            params: ['dim']
+          }],
+          outputs: ['output'],
+          type: "softmax"
+        },
 
         {
           color: "#2B9D89",
@@ -178,25 +259,9 @@ export class Sidebar {
           outputs: ['output'],
           type: "softplus"
         },
-        {
-          type: "separator",
-          name: "loss functions"
-        },
+       
 
-        {
-          color: "#D2AF53",
-
-          count: 0,
-          default_name: "xent",
-          inputs: [{
-            name: 'prediction'
-          }, 
-          {
-            name: 'target'
-          }],
-          outputs: ['loss'],
-          type: "cross_entropy"
-        },
+      
         {
           type: "separator",
           name: "data functions"
@@ -217,33 +282,18 @@ export class Sidebar {
         },
         {
           color: "#1480FF",
-          params: {
-            "file path" : {
-              type: ".grad",
-              value: ""
-            },
-            "batch_size" : {
-              type: "int",
-              value: 1
-            },
-            "shuffle" : {
-              type: "bool",
-              value: "True"
-            }
-          },
+
           count: 0,
-          default_name: "input",
+          default_name: "flatten",
           inputs: [{
-            name: 'path',
-            params: [
-              "file path",
-              "shuffle"
-            ]
-          } 
-          ],
-          outputs: ['data', 'target'],
-          type: "input_data"
-        }
+            name: 'input'
+          }, 
+         ],
+          outputs: ['output'],
+          type: "flatten"
+        },
+       
+        
       ]
 
       staticObjects.push([this.container, 0, 0]);
@@ -264,7 +314,7 @@ export class Sidebar {
           // the block, we need to copy it so we don't edit 
           // the parameters of other blocks
           // this will happen inside the block class though
-          let block: Block = new Block(stage, data.params, this.blocks, 50, y, data.color, data.inputs, data.outputs, "test", data.type, true, screen);
+          let block: Block = new Block(stage, data.params, this.blocks, 50, y, data.color, data.inputs, data.outputs, "test", data.type, true, screen, {count: 0});
           
 
           staticObjects.push([block.container, 50, y]);

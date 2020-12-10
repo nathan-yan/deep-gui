@@ -3,6 +3,7 @@ import { Stage, Point, Rectangle, Ticker, Graphics, Container, Shape, Text } fro
 import * as util from "./util";
 import * as constants from "./constants";
 import * as monaco from 'monaco-editor';
+import * as $ from 'jquery';
 
 import {EditorElement} from "./editorElement";
 import {Block, BlockBody} from "./block";
@@ -204,18 +205,16 @@ window.addEventListener("load", () => {
     let jsonNetwork = {};
     console.log(sidebar.blocks);
     sidebar.blocks.forEach((block: Block, idx: number) => {
+      let typeText = block.blockBody.blockType.text;
       let blockData = {
         inputs: {},
         attributes: [],
-        type: block.blockBody.blockType.text //oof 
+        type: typeText.slice(0, typeText.length - 4) //oof 
       };
-
-      block.inputs.children.forEach((pair: [Output, Input], idx: number) => {
-        blockData.inputs[pair[1].props.name] = pair[0].props.block.blockBody.name + "." + pair[0].props.name;
-      })
 
       let seenParams = new Set();
       block.inputs.inputs.forEach((inp: Input, idx: number) => {
+        
         if (inp.props.availableParams) {
           inp.props.availableParams.forEach((param, idx) => {
             if (!seenParams.has(param)){
@@ -223,13 +222,22 @@ window.addEventListener("load", () => {
               seenParams.add(param);
             }
           })
+        }else {
+          blockData.inputs[inp.props.name] = null;
+
         }
       })
       
+      block.inputs.children.forEach((pair: [Output, Input], idx: number) => {
+        blockData.inputs[pair[1].props.name] = pair[0].props.block.blockBody.name + "." + pair[0].props.name;
+      })
+
       jsonNetwork[block.blockBody.name] = blockData;
     });
 
-    console.log(JSON.stringify(jsonNetwork));
+    $.post("http://localhost:5000/compile", JSON.stringify(jsonNetwork), (data) => {
+      console.log(data);
+    });
   }
 
   // click and drag pan
