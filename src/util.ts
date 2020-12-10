@@ -30,7 +30,7 @@ export function updateParameterEditor(inp: Input) {
         let element: HTMLDivElement = <HTMLDivElement> document.createElement('div');
         element.className = 'input-parameter'
         element.innerHTML = `
-            <span style = "">${param}</span>: <input id = input-${idx} class = 'inp' style = "color: ${inp.props.block.color}" value = ${p.value}></input> 
+            <span style = "">${param}</span>: <input id = input-${idx} class = 'inp' style = "color: ${inp.props.block.color}" value = "${p.value}"></input> 
             <br/>
             <span style = 'color: #aaa'>${p.type}</span>
         `

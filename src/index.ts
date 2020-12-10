@@ -59,7 +59,29 @@ function pan(stage, screen, staticObjects) {
   })
 }
 
-function zoomButtons(stage, canvas, zoomIntensity) {
+function resetSidebarPos(stage, sidebar, zoom=1){
+  let sidebarPos = stage.globalToLocal(0, 0);
+  sidebar.shape.graphics.command.x = sidebarPos.x;
+  sidebar.shape.graphics.command.y = sidebarPos.y;
+
+  sidebar.sidebarBlocks.forEach(sidebarBlock => {
+    sidebarBlock[0].blockBody.container.scale /= zoom;
+    
+    let blockPos = stage.globalToLocal(20, sidebarBlock[1]);
+    sidebarBlock[0].container.x = blockPos.x;
+    sidebarBlock[0].container.y = blockPos.y;
+  })
+
+  sidebar.sidebarTexts.forEach(sidebarText => {
+    sidebarText[0].scale /= zoom;
+    
+    let textPos = stage.globalToLocal(20, sidebarText[1]);
+    sidebarText[0].x = textPos.x;
+    sidebarText[0].y = textPos.y;
+  })
+}
+
+function zoomButtons(stage, canvas, zoomIntensity, sidebar) {
   // zoom buttons (might be better to replace with html buttons)
   let zoomIn = new Shape();
   zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);

@@ -8,7 +8,7 @@ export class Sidebar {
     shape: Shape;
     rect: Graphics.RoundRect;
     
-    sidebarBlocks: Block[]; 
+    sidebarBlocks: [Block, Number][]; 
     sidebarTexts: [Text, Number][];
     blocks: Block[];
     
@@ -27,8 +27,8 @@ export class Sidebar {
       this.sidebarTexts = [];
   
       this.shape = new Shape();
-      this.shape.graphics.beginStroke("#fff");
-      this.shape.graphics.setStrokeStyle(5);
+      // this.shape.graphics.beginStroke("#fff");
+      // this.shape.graphics.setStrokeStyle(5);
       this.shape.graphics.beginFill("#fff");
       this.rect = new Graphics.RoundRect(0, 0, 400, 1600, 0, 0, 0, 0);
       this.shape.graphics.append(this.rect);
@@ -270,8 +270,7 @@ export class Sidebar {
           staticObjects.push([block.container, 50, y]);
 
           block.sidebar = true;
-          this.sidebarBlocks.push(block);
-          block.container.initialY = y;
+          this.sidebarBlocks.push([block, y]);
           y += 60;
         }
         
