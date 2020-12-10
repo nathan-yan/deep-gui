@@ -2,16 +2,23 @@
 from flask import Flask, request
 import compiler
 
+import json
+
 app = Flask(__name__)
 
 
-@app.route('/', methods=["GET", "POST"])
+@app.route('/compile', methods=["GET", "POST"])
 def test():
     if request.method == "POST":
-        networkJson = request.json
-        compiledNetwork = compiler.write(networkJson, compiler.compile(
-            networkJson)).replace('\n', '<br>').replace(' ', '&nbsp')
-        return compiledNetwork
+        networkJson = request.get_json(force = True)
+        print(networkJson)
+
+        compiledNetwork = compiler.write('blank.py', networkJson)
+
+        with open("compiled.py", 'w') as compiled:
+            compiled.write(compiledNetwork)
+        
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
 
 if __name__ == "__main__":
