@@ -147,10 +147,10 @@ window.addEventListener("load", () => {
   let ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
 
-  canvas.width = 2000;
-  canvas.height = 1400;
-  canvas.style.width = "1000px";
-  canvas.style.height = "700px";
+  canvas.width = document.body.clientWidth * 1.6;
+  canvas.height = document.body.clientHeight * 2;
+  canvas.style.width = document.body.clientWidth * 0.8 + "px";
+  canvas.style.height =  document.body.clientHeight + "px";
   ctx.scale(2, 2);
 
   //Create a stage by getting a reference to the canvas
@@ -174,7 +174,7 @@ window.addEventListener("load", () => {
   canvas.addEventListener("wheel", (event) => {
     //console.log(event.deltaY + " " + zoom);
     //let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
-    zoom += event.deltaY / 100;
+    zoom += Math.sign(event.deltaY) / 20;
     if (zoom < 0.1) {
       zoom = 0.1
     }else if (zoom > 3) {

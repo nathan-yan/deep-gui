@@ -69,6 +69,7 @@ def write(file, graph):
          forward = '\n   def forward(self, '
          for i in inps:
             forward += i.replace(".", "_") + ", "
+            
          
          forward = forward[:-2] + "):\n"
 
@@ -97,6 +98,11 @@ def write(file, graph):
                net += addNet
                forward += addForward
                
+            elif 'flatten' == graph[block]['type']:
+               addNet, addForward = addTorch.addFlatten(block, graph[block]['inputs'], graph[block]['attributes'])
+               net += addNet
+               forward += addForward
+
             elif 'dense' == graph[block]['type']:
                addNet, addForward = addTorch.addLinear(block, graph[block]['inputs'], graph[block]['attributes'])
                net += addNet
@@ -116,7 +122,9 @@ def write(file, graph):
 
          forward += "\n      return "
          for o in outputs:
-            forward += o.replace(".", "_") + ","
+            forward += o.replace(".", "_") + ", "
+
+         forward = forward[:-2]
 
          contents = contents.replace(line, net + forward + initialize)
 

@@ -20,6 +20,18 @@ module.exports = {
       {
         test: /\.ttf$/,
         use: ['file-loader']
+      },
+      {
+        test: /\.(woff|woff2|ttf)(\?v=\d+\.\d+\.\d+)?$/,
+          use: {
+            loader: 'url-loader',
+            options: {
+              // Limit at 50k. Above that it emits separate files
+              limit: 50000,
+              // Output below fonts directory
+              name: './fonts/[name].[ext]',
+            },
+          },
       }
     ],
   },

@@ -42,6 +42,12 @@ def addConv2d(name, inputs, attributes):
    # if inputs contains a key named "weights"
    return '      self.' + name + ' = nn.Conv2d(' + fillAttributes(attributes) + ')\n', ('      %s = self.' + name + '(%s)\n') % (name + "_output", inputs['input'].replace(".", "_"))
 
+def addFlatten(name, inputs, attributes):
+   #name = generateName('Conv2d')
+   #name = block['name' ])
+   # if inputs contains a key named "weights"
+   return '      self.' + name + ' = nn.Flatten(' + fillAttributes(attributes) + ')\n', ('      %s = self.' + name + '(%s)\n') % (name + "_output", inputs['input'].replace(".", "_"))
+
 def addMaxPool2d(name, inputs, attributes):
    #name = generateName('Conv2d')
    #name = block['name' ])

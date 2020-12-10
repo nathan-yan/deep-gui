@@ -30,6 +30,7 @@
     "jquery": "^3.5.1",
     "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.0.0",
-    "style-loader": "^2.0.0"
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1"
   }
 }

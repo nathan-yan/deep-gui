@@ -82,7 +82,7 @@ export class Sidebar {
             },
             "padding_mode" : {
               type: "zeros | reflect | replicate | circular",
-              value: "zeros"
+              value: "'zeros'"
             } 
           },
           inputs: [
@@ -285,6 +285,17 @@ export class Sidebar {
 
           count: 0,
           default_name: "flatten",
+          params: {
+            start_dim : {
+              type: "int",
+              value: '1'
+            },
+            
+            end_dim : {
+              type: "int",
+              value: '-1'
+            }
+          },
           inputs: [{
             name: 'input'
           }, 

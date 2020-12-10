@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style = 'height:100%'>
 <head>    
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -9,6 +9,9 @@
 </head>
 
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
     body {
         margin: 0px;
         height: 100%;
@@ -47,11 +50,11 @@
 </style>
 
 <body>
-    <div style = 'display: flex;'>
+    <div style = 'display: flex; height: 100%'>
         <canvas id = 'myCanvas' style=""></canvas>
         <input style = 'position: absolute; top: -100px; left: 100px' type = 'text' id = 'name-editor'>
 
-        <div style = 'height: 650px; width: 100%; font-family: "Inter"; font-size: 20px; padding: 30px; overflow:scroll'>
+        <div style = 'height: calc(100% - 60px); width: 100%; font-family: "Inter"; font-size: 20px; padding: 30px; overflow:scroll'>
             <div id = 'compile-button'>Compile -></div>
 
             <span id = "block-type">conv2d</span> <span id = "block-name" style = "color:#5B60E0">conv_1</span> 
