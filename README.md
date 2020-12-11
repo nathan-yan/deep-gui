@@ -4,8 +4,8 @@ A graphical deep learning library
 ## Setup
 To install all Gradient dependencies, cd into the Gradient directory, then do:
 
-cd backend
-pip install -r requirements.txt
+`cd backend`
+`pip install -r requirements.txt`
 
 It might take a while to install everything!
 
@@ -29,8 +29,8 @@ WARNING: Since Gradient is a work in progress, there is no ability to SAVE your 
 
 To start creating a network, open the application by doing 
 
-cd backend
-python server.py 
+`cd backend`
+`python server.py`
 
 This will run the server as well as open up the web application in your default browser.
 
@@ -48,6 +48,7 @@ Next, drag a “dense” layer into the editor. Drag the “output” bubble fro
 The final step is to add a softmax layer. A softmax layer normalizes the output of your dense layer so that they add up to 1. The reason for this is that your network is actually outputting probabilities. Each output is the probability that the image is a certain digit. In order for the outputs to be valid probabilities, they must add up to 1. As an example, if our network outputs the following probabilities:
 
 0     1     2     3     4     5     6     7     8     9
+
 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0
 
 The network thinks there is a 20% chance the image is a 0, a 20% chance the image is a 1, and a 10% chance that the image is a 2, 3, 4, 5, 6, or 7. 
@@ -58,8 +59,8 @@ To add the softmax, just drag a softmax layer and connect the output of the dens
 
 Congratulations! It may not look like it, but you’ve made your first (albeit very simple) neural network in Gradient! To actually compile your network, click on the “compile ->” button on the top right. To train and test your network, go to the example directory we’ve made by opening another terminal, navigating to the Gradient directory and entering the commands:
 
-cd example_workspace
-python compiled.py
+`cd example_workspace`
+`python compiled.py`
 
 This will run your compiled file. If everything works nothing should happen for a while. After a minute or two the network will finish training and you should get output like this:
 
