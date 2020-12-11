@@ -124,15 +124,15 @@ export class Sidebar {
             
             "kernel_size" : {
               type: "int | [int, int]",
-              value: "[1, 1]"
+              value: "[2, 2]"
             },
             "stride" : {
               type: "int | [int, int]",
-              value: "[1, 1]"
+              value: "[2, 2]"
             },
             "padding" : {
               type: "int | [int, int]",
-              value: "[1, 1]"
+              value: "[0, 0]"
             },
             "dilation" : {
               type: "int | [int, int]",
@@ -222,7 +222,7 @@ export class Sidebar {
           params: {
             "dim" : {
               type: "int",
-              value: "0"
+              value: "1"
             }
           },
           count: 0,

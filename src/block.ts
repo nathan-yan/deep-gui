@@ -16,6 +16,8 @@ export class Block {
     inputs: Inputs;
     outputs: Outputs;
     sidebar: boolean;  // the sidebar, if any, that this block belongs to. display the compact sidebar version of this block
+
+    delete: Shape; 
   
     blocks: Block[] = [];   // the list of all other blocks, since this is pass by reference we chillin on the memory usage B)
 
@@ -51,7 +53,40 @@ export class Block {
           isSidebar: sidebar == true,
           block: this
        });
-      
+       
+      if (!this.sidebar){
+        this.delete = new Shape();
+        this.delete.graphics.beginFill("#fff");
+        this.delete.graphics.beginStroke("#f550");
+        this.delete.graphics.setStrokeStyle(4);
+
+        let rect = new Graphics.Rect(0, 10, 30, 30);
+        this.delete.graphics.append(rect);
+        
+        this.delete.graphics.beginStroke("#f55");
+        this.delete.graphics.moveTo(10, 10);
+        this.delete.graphics.lineTo(40, 40);
+        this.delete.graphics.moveTo(40, 10);
+        this.delete.graphics.lineTo(10, 40)
+        
+        this.delete.setBounds(0, 0, 30, 30);
+        this.delete.x = 0;
+        this.delete.y = -100;
+        this.container.addChild(this.delete);
+
+        this.delete.addEventListener("mousedown", (event) => {
+          console.log("removing")
+          this.inputs.inputs.forEach((inp: Input, idx: number) => {
+            inp.remove();
+          })
+  
+          this.blocks.splice(this.blocks.indexOf(this), 1);
+
+          displayStage.removeChild(this.container);
+        })
+  
+      }
+
       this.inputs = new Inputs({
         inputs: inputs,
         block: this,
@@ -73,6 +108,7 @@ export class Block {
 
       stage.addChild(this.container);
   
+     
       // attach listeners
       this.blockBody.container.addEventListener('mousedown', (event) => {
         let localPos = this.stage.globalToLocal(event.stageX, event.stageY);
@@ -89,7 +125,7 @@ export class Block {
 
             let newBlock: Block = new Block(this.stage, paramsClone, this.blocks,
                 localPos.x + this.clickOffset[0], localPos.y + this.clickOffset[1],
-                color,  inputs, outputs, type + "_" + props.count, type, false);
+                color,  inputs, outputs, type + "_" + props.count, type, false, displayStage);
             
                 props.count++;
             

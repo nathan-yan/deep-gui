@@ -110,7 +110,9 @@ export class Input extends EditorElement{
 
     remove() {
       // remove connection Output-side
-      this.connection.props.remove(this);
+      if (this.connection) {
+        this.connection.props.remove(this);
+      }
       this.connection = null;
 
       //remove connection Input-side
