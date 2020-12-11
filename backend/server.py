@@ -3,6 +3,8 @@ from flask import Flask, request
 import compiler
 
 import json
+import webbrowser
+import os
 
 app = Flask(__name__)
 cached_network = {'network' : None}
@@ -43,11 +45,15 @@ def test():
 
 
 if __name__ == "__main__":
+    # open the app
+    webbrowser.open('file://' + os.path.realpath('../dist/index.html'))
+
+    print("running observer")
     observer.schedule(event_handler, path='../example_workspace', recursive=False)
     observer.start()
 
     try:
-        app.run(debug=True)
+        app.run(debug=False)
 
     finally:
         observer.stop()

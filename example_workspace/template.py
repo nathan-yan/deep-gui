@@ -24,7 +24,7 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuff
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 classes = [str(i) for i in range (10)]
 
-net = @network(["conv2d_0.input"], ["softmax_0.output"])
+net = @network(["flatten_0.input"], ["softmax_0.output"])
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum = 0.9)

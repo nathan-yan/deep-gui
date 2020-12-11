@@ -27,16 +27,11 @@ classes = [str(i) for i in range (10)]
 class Net(nn.Module):
    def __init__(self):
       super(Net, self).__init__()
-      self.conv2d_0 = nn.Conv2d(in_channels=1, out_channels=10, kernel_size=3, stride=[1, 1], padding=[1, 1], dilation=[1, 1], groups=1, bias=True, padding_mode='zeros',)
-      self.maxpool_0 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=[1, 1],)
       self.flatten_0 = nn.Flatten()
-      self.dense_0 = nn.Linear(in_features=14*14*10, out_features=10,)
+      self.dense_0 = nn.Linear(in_features=28*28, out_features=10,)
 
-   def forward(self, conv2d_0_input):
-      conv2d_0_output = self.conv2d_0(conv2d_0_input)
-      relu_0_output = F.relu(conv2d_0_output)
-      maxpool_0_output = self.maxpool_0(relu_0_output)
-      flatten_0_output = self.flatten_0(maxpool_0_output)
+   def forward(self, flatten_0_input):
+      flatten_0_output = self.flatten_0(flatten_0_input)
       dense_0_output = self.dense_0(flatten_0_output)
       softmax_0_output = F.softmax(dense_0_output, dim=1,)
 
