@@ -1,6 +1,7 @@
 const path = require('path');
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 const {CleanWebpackPlugin} = require("clean-webpack-plugin");
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -12,6 +13,26 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }, 
+      {
+        test: /\.ttf$/,
+        use: ['file-loader']
+      },
+      {
+        test: /\.(woff|woff2|ttf)(\?v=\d+\.\d+\.\d+)?$/,
+          use: {
+            loader: 'url-loader',
+            options: {
+              // Limit at 50k. Above that it emits separate files
+              limit: 50000,
+              // Output below fonts directory
+              name: './fonts/[name].[ext]',
+            },
+          },
+      }
     ],
   },
   resolve: {
@@ -22,6 +43,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   plugins: [
+    new MonacoWebpackPlugin(), 
     new CleanWebpackPlugin(),
     new HTMLWebpackPlugin({
     	template: path.resolve(__dirname, "./src/templates/index.html")

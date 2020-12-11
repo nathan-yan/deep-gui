@@ -2,34 +2,32 @@ import { Stage, Point, Rectangle, Ticker, Graphics, Container, Shape, Text } fro
 
 import * as util from "./util";
 import * as constants from "./constants";
+import * as monaco from 'monaco-editor';
+import * as $ from 'jquery';
 
 import {EditorElement} from "./editorElement";
 import {Block, BlockBody} from "./block";
 
 import {Sidebar} from './sidebar';
+import { Output } from "./outputs";
+import { Input } from "./inputs";
 
 // store all non-moving elements
-let staticObjects: any[] = new Array();
-
-function tickGenerator(stage: Stage) {
-  return function tick(event: Event) {
-    stage.update();
-    
-  }
-}
+let staticObjects: [Shape, number, number][] = new Array();
 
 // scale function
 function scale(stage, zoom, zoomPt, staticObjects) {
   // set zoom bounds
-  if (zoom > 1 && stage.scale < 5 || zoom < 1 && stage.scale > 0.2) {
-    let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
-    stage.regX = localPos.x;
-    stage.regY = localPos.y;
-    stage.x = zoomPt[0];
-    stage.y = zoomPt[1];
+  
+  let localPos = stage.globalToLocal(zoomPt[0], zoomPt[1]);
+  stage.regX = localPos.x;
+  stage.regY = localPos.y;
+  stage.x = zoomPt[0];
+  stage.y = zoomPt[1];
 
-    stage.scale *= zoom;
+  stage.scale = zoom;
 
+    /*
     staticObjects.forEach(object => {
       object[0].graphics.command.w /= zoom;
       object[0].graphics.command.h /= zoom;
@@ -38,10 +36,9 @@ function scale(stage, zoom, zoomPt, staticObjects) {
       object[0].graphics.command.x = objPos.x;
       object[0].graphics.command.y = objPos.y;
       console.log(stage.scale);
-    })
+    })*/
 
-    stage.update();
-  }
+    //stage.update();
 }
 
 // pan function
@@ -53,16 +50,39 @@ function pan(stage, screen, staticObjects) {
       stage.x = initPos[0] + event2.stageX - event1.stageX;
       stage.y = initPos[1] + event2.stageY - event1.stageY;
       
+      /*
       staticObjects.forEach(object => {
         let pos = stage.globalToLocal(object[1], object[2]);
-        object[0].graphics.command.x = pos.x;
-        object[0].graphics.command.y = pos.y;
-      })      
+        object[0].x = pos.x;
+        object[0].y = pos.y;
+      })     */ 
     })
   })
 }
 
-function zoomButtons(stage, canvas, zoomIntensity) {
+function resetSidebarPos(stage, sidebar, zoom=1){
+  let sidebarPos = stage.globalToLocal(0, 0);
+  sidebar.shape.graphics.command.x = sidebarPos.x;
+  sidebar.shape.graphics.command.y = sidebarPos.y;
+
+  sidebar.sidebarBlocks.forEach(sidebarBlock => {
+    sidebarBlock[0].blockBody.container.scale /= zoom;
+    
+    let blockPos = stage.globalToLocal(20, sidebarBlock[1]);
+    sidebarBlock[0].container.x = blockPos.x;
+    sidebarBlock[0].container.y = blockPos.y;
+  })
+
+  sidebar.sidebarTexts.forEach(sidebarText => {
+    sidebarText[0].scale /= zoom;
+    
+    let textPos = stage.globalToLocal(20, sidebarText[1]);
+    sidebarText[0].x = textPos.x;
+    sidebarText[0].y = textPos.y;
+  })
+}
+
+function zoomButtons(stage, canvas, zoomIntensity, sidebar) {
   // zoom buttons (might be better to replace with html buttons)
   let zoomIn = new Shape();
   zoomIn.graphics.beginFill("white").drawRect(25, 25, 50, 50);
@@ -83,49 +103,150 @@ function zoomButtons(stage, canvas, zoomIntensity) {
   })
 }
 
+class Editor extends Stage {
+  constructor(id) {
+    super(id);
+    console.log("this is the editor!");
+
+    super.addEventListener("mousedown", (event) => {
+      console.log("editor");
+      console.log(event)
+    });
+  }
+}
+
+function tickGenerator(stage: Stage) {
+  return function tick(event: Event) {
+    stage.update();
+    
+  }
+}
+
 window.addEventListener("load", () => {
   //get the canvas, canvas context, and dpi
+  // set up the code editor
+  /*
+  monaco.editor.create(document.getElementById('codeEditor'), {
+    value: [
+      'function x() {',
+      '\tconsole.log("Hello world!");',
+      '}'
+    ].join('\n'),
+    language: 'javascript'
+  });*/
+
+  let canvas = <HTMLCanvasElement> document.getElementById('myCanvas');
+  let blocks: Block[] = [];
+  let sidebarBlocks: Block[] = [];
+
+  let displayContainer = new Container();
   
-  let canvas = <HTMLCanvasElement> document.getElementById('myCanvas'),
-  ctx = canvas.getContext('2d'),
+  displayContainer.x = 300;
+  displayContainer.y = 0;
+
+  let ctx = canvas.getContext('2d'),
   dpi = window.devicePixelRatio * 2;
 
-  canvas.width = 2000;
-  canvas.height = 1600;
-  canvas.style.width = "1000px";
-  canvas.style.height = "800px";
+  canvas.width = document.body.clientWidth * 1.6;
+  canvas.height = document.body.clientHeight * 2;
+  canvas.style.width = document.body.clientWidth * 0.8 + "px";
+  canvas.style.height =  document.body.clientHeight + "px";
   ctx.scale(2, 2);
 
   //Create a stage by getting a reference to the canvas
-  let stage = new Stage("myCanvas");
+  let stage = <Stage> new Editor("myCanvas");
   stage.enableMouseOver(10);
   
   // set up a customizable background screen
   let screen = new Shape();
-  screen.graphics.beginLinearGradientFill(["#CC91FF" ,"#91A9FF"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
+  screen.graphics.beginLinearGradientFill(["#fafafa" ,"#fafafa"], [0, 1], -2*canvas.width, -2*canvas.height, 2*canvas.width, 2*canvas.height).drawRect(0, 0, canvas.width, canvas.height);
   staticObjects.push([screen, 0, 0]);
   stage.addChild(screen);
+  stage.addChild(displayContainer);
 
-  let sidebar = new Sidebar(stage)
+  let sidebar = new Sidebar(stage, displayContainer, staticObjects);
 
   // change how much stage zooms each step
   let zoomIntensity = 1.2;
+  let zoom = 1;
 
   // mouse wheel zoom
   canvas.addEventListener("wheel", (event) => {
-    let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
-    scale(stage, zoom, [stage.mouseX, stage.mouseY], staticObjects);
+    //console.log(event.deltaY + " " + zoom);
+    //let zoom = event.deltaY < 0 ? 1/zoomIntensity : zoomIntensity;
+    zoom += Math.sign(event.deltaY) / 20;
+    if (zoom < 0.1) {
+      zoom = 0.1
+    }else if (zoom > 3) {
+      zoom = 3
+    }
+
+    scale(displayContainer, zoom, [stage.mouseX, stage.mouseY], staticObjects);
   });
 
-  // click and drag pan
-  pan(stage, screen, staticObjects);
+  document.getElementById("compile-button").onclick = () => {
+    // get all the blocks
 
-  let block: Block = new Block(stage, 200, 200, "#5B60E0", ["weights", "input", ], ['output'], "conv_1", "convolution", null);
-  let block2: Block = new Block(stage, 200, 500, "#F97979", ["canvas", "intensity", "gx", "gy", "stride", "variance"], ['output2'], "write", "attentive_write", null);
+    // each block is in the format:
+    /*
+      block_name: {
+       
+        inputs: [   // where this block's inputs come from
+          past_block_name.output_name, ...
+        ],
+        attributes : [
+          attr1, ...
+        ]
+      }
+
+      // if an input has params, it is not considered a real input and gets placed into `attributes`
+      // however if the input has a connection, it IS considered a real input and gets placed into `inputs`
+    */
+    let jsonNetwork = {};
+    console.log(sidebar.blocks);
+    sidebar.blocks.forEach((block: Block, idx: number) => {
+      let typeText = block.blockBody.blockType.text;
+      let blockData = {
+        inputs: {},
+        attributes: [],
+        type: typeText.slice(0, typeText.length - 4) //oof 
+      };
+
+      let seenParams = new Set();
+      block.inputs.inputs.forEach((inp: Input, idx: number) => {
+        
+        if (inp.props.availableParams) {
+          inp.props.availableParams.forEach((param, idx) => {
+            if (!seenParams.has(param)){
+              blockData.attributes.push(param + "=" + inp.props.params[param].value);
+              seenParams.add(param);
+            }
+          })
+        }else {
+          blockData.inputs[inp.props.name] = null;
+
+        }
+      })
+      
+      block.inputs.children.forEach((pair: [Output, Input], idx: number) => {
+        blockData.inputs[pair[1].props.name] = pair[0].props.block.blockBody.name + "." + pair[0].props.name;
+      })
+
+      jsonNetwork[block.blockBody.name] = blockData;
+    });
+
+    $.post("http://localhost:5000/compile", JSON.stringify(jsonNetwork), (data) => {
+      console.log(data);
+    });
+  }
+
+  // click and drag pan
+  pan(displayContainer, screen, staticObjects);
+
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]); 
 
   // zoom buttons
-  zoomButtons(stage, canvas, zoomIntensity);
+  //zoomButtons(stage, canvas, zoomIntensity);
   
   //let block2: Block = new Block(stage, 100, 100, "#5B60E0", ["input1", "test", ]);
 
