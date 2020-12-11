@@ -51,6 +51,11 @@ Next, drag a “dense” layer into the editor. Drag the “output” bubble fro
 
 ![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image3.png)
 
+> ❓ What is a "dense" layer?
+>
+> A dense layer is a matrix multiplication. If you remember from linear algebra, a N x M matrix multplied with a M x P matrix produces an output with size N x P.
+> In the case of our image, we are transforming a 28 x 28 image of a digit into a 1 x 784 vector (this is what the flatten layer does). When we define our `in_features` and `out_features`, we are defining the size of the other matrix we are multiplying. Since we decided `in_features = 784` and `out_features=10`, our other matrix is of size 784 x 10. If we multiply the 1 x 784 vector with the 784 x 10 matrix, we get a vector of size 1 x 10. Each of these ten numbers corresponds to how much the network thinks the input image is a certain digit.
+
 The final step is to add a softmax layer. A softmax layer normalizes the output of your dense layer so that they add up to 1. The reason for this is that your network is actually outputting probabilities. Each output is the probability that the image is a certain digit. In order for the outputs to be valid probabilities, they must add up to 1. As an example, if our network outputs the following probabilities:
 
 ```
@@ -104,23 +109,25 @@ You would want to change line 27 to
 ```
 
 > ❓ What does `27  net = @network(['flatten_0.input'], ['softmax_0.output'])` actually do?
-> This line is expended in `template.py` into an actual executable neural network model. 
-> in our example network, line 27 is expanded into the following lines:
-```python
-class Net(nn.Module):
-   def __init__(self):
-      super(Net, self).__init__()
-      self.flatten_0 = nn.Flatten()
-      self.dense_0 = nn.Linear(in_features=28*28, out_features=10,)
-
-   def forward(self, flatten_0_input):
-      flatten_0_output = self.flatten_0(flatten_0_input)
-      dense_0_output = self.dense_0(flatten_0_output)
-      softmax_0_output = F.softmax(dense_0_output, dim=1,)
-
-      return softmax_0_output
-net = Net()
-```
+>
+> This line is expanded in `compiled.py` into an actual executable neural network model. In our example network, line 27 is expanded into the following lines:
+>```python
+> # compiled.py
+>
+>class Net(nn.Module):
+>   def __init__(self):
+>      super(Net, self).__init__()
+>      self.flatten_0 = nn.Flatten()
+>      self.dense_0 = nn.Linear(in_features=28*28, out_features=10,)
+>
+>   def forward(self, flatten_0_input):
+>      flatten_0_output = self.flatten_0(flatten_0_input)
+>      dense_0_output = self.dense_0(flatten_0_output)
+>      softmax_0_output = F.softmax(dense_0_output, dim=1,)
+>
+>      return softmax_0_output
+>net = Net()
+>```
 
 If you changed anything in the `template.py` file, make sure to save! To train and test your network, go to the example directory we’ve made by opening another terminal, navigating to the Gradient directory and entering the commands:
 
