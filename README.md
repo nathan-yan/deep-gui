@@ -3,7 +3,8 @@
 A graphical deep learning library
 
 ## Setup
-To install all Gradient dependencies, cd into the Gradient directory, then do:
+
+Some of these dependencies, especially numpy, can be pretty finnicky to install with just pip. It is recommended you install these via [Anaconda](https://www.anaconda.com/products/individual). To install all Deep-GUI dependencies, cd into the deep-gui directory, then do:
 
 ```
 cd backend
@@ -12,12 +13,30 @@ pip install -r requirements.txt
 
 It might take a while to install everything!
 
+Next you'll need to install PyTorch, which is a popular deep learning library. For Windows the command should be:
+
+```
+pip install torch==1.7.1+cpu torchvision==0.8.2+cpu torchaudio===0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+```
+
+For Mac OS the command should be:
+
+```
+pip install torch torchvision torchaudio
+```
+
+For Linux the command should be:
+
+```
+pip install torch==1.7.1+cpu torchvision==0.8.2+cpu torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+```
+
 ## Intro to Neural Networks
-Neural networks have recently become an extremely popular machine learning technique, and are used to solve problems in image classification, natural language processing and robotics, among many others. This section gives a brief overview of how neural networks work; enough to understand how Gradient works at least.
+Neural networks have recently become an extremely popular machine learning technique, and are used to solve problems in image classification, natural language processing and robotics, among many others. This section gives a brief overview of how neural networks work; enough to understand how Deep-GUI works at least.
 
 Neural networks take in an input, which is usually a matrix or a _tensor_ (which is just a matrix but with an extra dimension, think of a matrix as a square and a tensor as a cube or even hypercube!), and spit out an output. For example, in the case of image classification, the input of the neural network might be an image of width 100 pixels x 100 pixels. In this case, the input to the network is a 3 x 100 x 100 element tensor (the 3 comes from the R, G and B color channels). Each number in the tensor is the intensity of the R, G or B value of a single pixel. The network output might be a single number, which is the probability that the given image is a dog.
 
-Neural networks have inside them many parameters, which are numbers that tell the network what to do with its given input to produce an output. These parameters start out randomly initialized, which means the network probably will do quite poorly in the beginning. In the context of Gradient, we typically use _supervised learning_ to train networks. 
+Neural networks have inside them many parameters, which are numbers that tell the network what to do with its given input to produce an output. These parameters start out randomly initialized, which means the network probably will do quite poorly in the beginning. In the context of Deep-GUI, we typically use _supervised learning_ to train networks. 
 
 ### Supervised Learning
 When we give the network an input as well as the _expected output_ (the correct, or groundtruth answer) of the network, we can see how our network’s output compares to its expected output. From this comparison, we can calculate how to change our parameters using a clever algorithm called backpropagation and gradient descent. If we give the network many of these examples, our parameters will slowly get better and better. 
@@ -25,10 +44,10 @@ When we give the network an input as well as the _expected output_ (the correct,
 ### Loss Functions
 So how does our network compare its output to its expected output? This is a special function called a _loss function_. A common loss function is simply the squared distance between the expected output and the network output. Another loss function, which we’ll use in our example, is categorical cross entropy. This has a fancy definition, but what it is in simple terms is the natural log of the probability our network picks the correct answer, if it samples its answers from its output. 
 
-## How to use Gradient
-Typically, neural networks are created using libraries like PyTorch or Tensorflow, and require you to actually code the network. Gradient attempts to turn this coding-only approach into a hybrid of coding and graphics. You create the network using a graphical interface, and insert that network into your code wherever you want. This maintains the flexibility of coding while allowing you to develop a network extremely quickly using drag and drop blocks.
+## How to use Deep-GUI
+Typically, neural networks are created using libraries like PyTorch or Tensorflow, and require you to actually code the network. Deep-GUI attempts to turn this coding-only approach into a hybrid of coding and graphics. You create the network using a graphical interface, and insert that network into your code wherever you want. This maintains the flexibility of coding while allowing you to develop a network extremely quickly using drag and drop blocks.
 
-WARNING: Since Gradient is a work in progress, there is no ability to SAVE your network. That is, if you ever refresh your browser, your network progress will be erased, and you will have to start over again. This is a feature we’re hoping to add soon! 
+WARNING: Since Deep-GUI is a work in progress, there is no ability to SAVE your network. That is, if you ever refresh your browser, your network progress will be erased, and you will have to start over again. This is a feature we’re hoping to add soon! 
 
 To start creating a network, open the application by doing 
 
@@ -70,7 +89,7 @@ To add the softmax, just drag a softmax layer and connect the output of the dens
 
 ![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image2.png)
 
-Congratulations! It may not look like it, but you’ve made your first (albeit very simple) neural network in Gradient! To actually compile your network, click on the “compile ->” button on the top right. There is one final thing to do, which is to change your `example_workspace/template.py` file. Deep-GUI works with two files: `template.py` and `compiled.py`. The template file is what the user actually edits. The compiled file is what is generated, and it's what you execute in Python. If the server is running (python server.py), updating `template.py` will automatically update `compiled.py`. The only difference between the two files is that there is a special line on line 27 of `template.py` that looks like:
+Congratulations! It may not look like it, but you’ve made your first (albeit very simple) neural network in Deep-GUI! To actually compile your network, click on the “compile ->” button on the top right. There is one final thing to do, which is to change your `example_workspace/template.py` file. Deep-GUI works with two files: `template.py` and `compiled.py`. The template file is what the user actually edits. The compiled file is what is generated, and it's what you execute in Python. If the server is running (python server.py), updating `template.py` will automatically update `compiled.py`. The only difference between the two files is that there is a special line on line 27 of `template.py` that looks like:
 
 ```python
 27  net = @network(['flatten_0.input'], ['softmax_0.output'])
@@ -129,7 +148,7 @@ You would want to change line 27 to
 >net = Net()
 >```
 
-If you changed anything in the `template.py` file, make sure to save! To train and test your network, go to the example directory we’ve made by opening another terminal, navigating to the Gradient directory and entering the commands:
+If you changed anything in the `template.py` file, make sure to save! To train and test your network, go to the example directory we’ve made by opening another terminal, navigating to the deep-gui directory and entering the commands:
 
 ```
 cd example_workspace
