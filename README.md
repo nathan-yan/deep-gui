@@ -76,7 +76,7 @@ Before we get into what this means, it's important to talk about another concept
 ### Addressing inputs and outputs of a layer
 Below is a close up of a single block.
 
-![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image5.png)
+![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image5.PNG)
 
 In Deep-GUI, each of these inputs and outputs are addressed based on the block's name, which is the text in purple. Since this block's name is conv2d_0, the weights input is addressed as `conv2d_0.weights`. The output of the layer is addressed as `conv2d_0.output`. Make sure you have the period (.) delimiting the block name and the input/output name.
 
@@ -94,7 +94,7 @@ It is very important to understand what the `flatten_0.input` and `softmax_0.out
 
 We can even return multiple outputs by putting multiple elements into the output array. However, you will need to modify code elsewhere in the `template.py` file to make it all work. For the purposes of this tutorial, there _should_ be no need to edit these. HOWEVER, if the names of your `flatten` and `softmax` blocks are not `flatten_0` and `softmax_0`, be sure to change them in `template.py`. For example, if your network looked like:
 
-![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image6.png)
+![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image6.PNG)
 
 
 You would want to change line 27 to
