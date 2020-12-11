@@ -28,7 +28,7 @@ class Net(nn.Module):
    def __init__(self):
       super(Net, self).__init__()
       self.flatten_0 = nn.Flatten()
-      self.dense_0 = nn.Linear(in_features=28*28, out_features=10,)
+      self.dense_0 = nn.Linear(in_features=784, out_features=10,)
 
    def forward(self, flatten_0_input):
       flatten_0_output = self.flatten_0(flatten_0_input)
