@@ -88,7 +88,7 @@ Now let's bring it back to our curious line:
 
 It is very important to understand what the `flatten_0.input` and `softmax_0.output` mean. `flatten_0.input` is the input the user needs to supply to the network for it to run properly. If you look at your network in the graphical editor, you might notice that every input bubble is filled (shaded black or some other color) except for the input field of the `flatten_0` block. Since this block has no input, the user must define it. Therefore, the first array in the `@network` function is the list of dependencies the network requires before it can run. The `softmax_0.output` is the output the user expects the network to spit out. In this case, we want to know the probabilities the network computed, so we ask for it to return `softmax_0.output`. If we instead wanted to get the outputs of the `dense` layer before it goes into the softmax function, we would write 
 
-```
+```python
 27  net = @network(['flatten_0.input'], ['dense_0.output'])
 ```
 
@@ -99,17 +99,47 @@ We can even return multiple outputs by putting multiple elements into the output
 
 You would want to change line 27 to
 
-```
+```python
 27  net = @network(['flatworm.input'], ['spongebob.output'])
+```
+
+> ❓ What does `27  net = @network(['flatten_0.input'], ['softmax_0.output'])` actually do?
+> This line is expended in `template.py` into an actual executable neural network model. 
+> in our example network, line 27 is expanded into the following lines:
+```python
+class Net(nn.Module):
+   def __init__(self):
+      super(Net, self).__init__()
+      self.flatten_0 = nn.Flatten()
+      self.dense_0 = nn.Linear(in_features=28*28, out_features=10,)
+
+   def forward(self, flatten_0_input):
+      flatten_0_output = self.flatten_0(flatten_0_input)
+      dense_0_output = self.dense_0(flatten_0_output)
+      softmax_0_output = F.softmax(dense_0_output, dim=1,)
+
+      return softmax_0_output
+net = Net()
 ```
 
 If you changed anything in the `template.py` file, make sure to save! To train and test your network, go to the example directory we’ve made by opening another terminal, navigating to the Gradient directory and entering the commands:
 
-`cd example_workspace`
-`python compiled.py`
+```
+cd example_workspace
+python compiled.py
+```
 
 This will run your compiled file. If everything works nothing should happen for a while. After a minute or two the network will finish training and you should get output like this:
 
 ![flatten layer](https://raw.githubusercontent.com/nathan-yan/deep-gui/backend/readme_imgs/image4.png)
 
 It looks like our simple network has accuracy of 88%. It is most accurate at detecting 0s (97%), and least accurate at detecting 5s (61%). The confusion matrix below tells you what digits are most commonly confused for others. For example, the row beginning with the digit ‘5’ and the column beginning with the digit ‘3’ is 158. This means that the digit 5 was confused for the digit 3 158 times during testing. This makes sense, since 5s actually look pretty similar to 3s. Take a look at the confusion matrix of your network and see if you can find any interesting insights!
+
+## Summary
+This is a long guide and it's easy to miss things. Here is a general overview of the steps taken to run a network using Deep-GUI:
+
+1. Create the network using the drag and drop blocks.
+2. Click on the "Compile" button on the top right
+3. Edit your `template.py` so it matches your networks
+4. Save `template.py` 
+5. Run `compiled.py`
