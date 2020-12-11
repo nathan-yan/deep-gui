@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" style = 'height:100%'>
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Deep GUI</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+    body {
+        margin: 0px;
+        height: 100%;
+    }
+
+    .input-parameter {
+        margin-bottom: 20px;
+    }
+
+    .inp {
+        font-family: "Fira Code";
+        font-size: 15px;
+        border-width:0px;
+        border:none;
+        outline: none;
+        font-weight: "700";
+
+    }
+
+    #compile-button {
+        border-style:  solid;
+        
+        border-radius: 0px;
+        width: fit-content;
+        padding: 5px 10px;
+
+        font-size: 20px;
+
+        margin-bottom: 50px; 
+    }
+
+    #compile-button:hover {
+        background: #eee;
+        cursor: pointer;
+    }
+</style>
+
+<body>
+    <div style = 'display: flex; height: 100%'>
+        <canvas id = 'myCanvas' style=""></canvas>
+        <input style = 'position: absolute; top: -100px; left: 100px' type = 'text' id = 'name-editor'>
+
+        <div style = 'height: calc(100% - 60px); width: 100%; font-family: "Inter"; font-size: 20px; padding: 30px; overflow:scroll'>
+            <div id = 'compile-button'>Compile -></div>
+
+            <span id = "block-type"></span> <span id = "block-name" style = "color:#555"></span> 
+            <br/>
+            <span style = "font-size: 15px" id = 'input-name'></span> 
+            
+            <br/><br/>
+            <div style = 'font-size: 15px; font-family: "Fira Code"' id = 'parameters'>
+               
+                
+            </div>
+        </div> 
+    </div>
+    <!--<div id = 'codeEditor' style = "width: 1000px;height: 500px"></div>-->
+<script src="bundle-468f1cb39531f54cda90.js"></script></body>
+</html>
